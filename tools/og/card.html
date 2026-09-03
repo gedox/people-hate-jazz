@@ -5,7 +5,7 @@
 <title>OG card source</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,700;12..96,75..100,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,700;12..96,75..100,800&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#e8e2d4; --ink:#14110e; --ink-faint:#6e6354;
@@ -63,6 +63,41 @@
   html[data-dept="store"] .overline b{color:var(--accent)}
   html[data-dept="store"] .mark .l2{margin-left:96px}
 
+  /* artist: the name is the wordmark, sized to fit by script below.
+     Echoes the artist page itself — small flame folio, then the name big. */
+  html[data-dept="artist"] .mark{justify-content:center; gap:0}
+  html[data-dept="artist"] .folio{
+    font-family:"Space Mono",monospace; font-size:22px; font-weight:700;
+    letter-spacing:.16em; color:var(--accent);
+    margin-bottom:18px; line-height:1;
+  }
+  html[data-dept="artist"] .name{
+    /* font-size set by fitName(); overflow-wrap stays normal so that a single
+       over-wide word shows up as overflow and drives the fit down a step */
+    line-height:.82; max-width:1000px; overflow-wrap:normal;
+  }
+  html[data-dept="artist"] .pull{
+    font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400;
+    font-size:37px; line-height:1.22; letter-spacing:0;
+    text-transform:none; color:var(--ink-faint);
+    max-width:880px; margin-top:26px;
+  }
+
+  /* oversized folio numeral, bled off the right edge — riso overprint,
+     under the grain so it reads as a second ink pass, not a shadow */
+  .ghost{
+    position:absolute; right:-34px; bottom:-56px; z-index:0;
+    font-family:"Bricolage Grotesque","Arial Black",sans-serif;
+    font-weight:800; font-size:340px; line-height:.72;
+    letter-spacing:-.05em; color:var(--flame); opacity:.13;
+    pointer-events:none; user-select:none;
+  }
+  /* .ghost is positioned, so the unpositioned chrome would otherwise paint
+     beneath it. Lift the real content back above the numeral. */
+  html[data-dept="artist"] .kicker,
+  html[data-dept="artist"] .mark,
+  html[data-dept="artist"] .foot{position:relative; z-index:1}
+
   /* footer strip */
   .foot{
     font-family:"Space Mono",monospace; font-size:20px; font-weight:700;
@@ -76,6 +111,7 @@
 </head>
 <body>
 <div class="grain"></div>
+<div class="ghost" id="ghost" hidden></div>
 
 <div class="kicker">
   <span>Issue 01</span><span class="sep">&#9670;</span>
@@ -88,10 +124,35 @@
 <div class="foot" id="foot"></div>
 
 <script>
-  const dept = new URLSearchParams(location.search).get('dept') || 'magazine';
+  const Q = new URLSearchParams(location.search);
+  const dept = Q.get('dept') || 'magazine';
   document.documentElement.dataset.dept = dept;
 
-  const COPY = {
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* One artist. Everything comes in on the query string so tools/og/build-artists.mjs
+     can drive this file per artist without writing 60 temporary copies of it. */
+  function artistCopy() {
+    const n     = Q.get('n') || '';
+    const cuts  = Number(Q.get('cuts') || 0);
+    const city  = (Q.get('city') || '').trim();
+    // 10 of the 60 have no confirmed origin; the colophon keeps them blank on
+    // purpose, so the card drops the segment rather than inventing a city.
+    const bits  = [Q.get('form') || '', city === '—' ? '' : city].filter(Boolean);
+    document.getElementById('ghost').textContent = n;
+    document.getElementById('ghost').hidden = false;
+    return {
+      dept: 'The Jamies Survey',
+      mark: `<div class="folio">NO. ${esc(n)}</div>` +
+            `<div class="name" id="name">${esc(Q.get('name'))}</div>` +
+            `<div class="pull">&ldquo;${esc(Q.get('pull'))}&rdquo;</div>`,
+      foot: bits,
+      end:  cuts === 1 ? '1 cut' : `${cuts} cuts`
+    };
+  }
+
+  const COPY = dept === 'artist' ? artistCopy() : {
     magazine: {
       dept: 'The Jamies Survey',
       mark: '<span class="l1">People</span><span class="l2">Hate</span><span class="l3">Jazz</span>',
@@ -111,6 +172,34 @@
   document.getElementById('foot').innerHTML =
     COPY.foot.map(s => `<span>${s}</span>`).join('<span class="dot">&#9670;</span>') +
     `<span class="end">&#9670; ${COPY.end}</span>`;
+
+  /* Artist names run from 3 to 24 characters, so no single size works for all
+     sixty. Step down until the name sits on at most two lines and the column
+     stops overflowing. Runs after the webfonts land — measuring against the
+     fallback face would size every card wrong. */
+  function fitName() {
+    const el = document.getElementById('name');
+    const mark = document.getElementById('mark');
+    if (!el || !mark) return;
+    let size = 172;
+    const fits = () => {
+      el.style.fontSize = size + 'px';
+      const lines = Math.round(el.scrollHeight / (size * 0.82));
+      return el.scrollWidth <= el.clientWidth + 1 &&
+             lines <= 2 &&
+             mark.scrollHeight <= mark.clientHeight + 1;
+    };
+    while (size > 54 && !fits()) size -= 2;
+    el.style.fontSize = size + 'px';
+  }
+
+  const done = () => {
+    if (dept === 'artist') fitName();
+    // Screenshot gate: the renderer waits for this before capturing.
+    document.documentElement.dataset.ready = '1';
+  };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(done);
+  else addEventListener('load', done);
 </script>
 </body>
 </html>
