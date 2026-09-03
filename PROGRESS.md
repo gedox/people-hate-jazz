@@ -22,9 +22,9 @@
 
 | # | Item | Why it matters | Cost of waiting |
 |---|---|---|---|
-| 1 | **"Run now" once on the 3 local shifts** in the Scheduled sidebar (`phj-lane-a-product`, `phj-lane-b-editorial`, `phj-local-browser-shift`) | They use browser control. Approvals are stored per task | Tomorrow's shifts stall on a permission prompt with nobody there to click |
-| 2 | **Buy a domain?** | Now urgent: 60 new artist pages bake the `.vercel.app` alias into their canonical and social meta | ~€12/yr. One regenerate now; after launch it invalidates cached previews everywhere |
-| 3 | **Repo public or private?** | Public is free marketing for a publication | None — reversible |
+| 1 | **"Run now" once on Lane B and Lane C** (`phj-lane-b-editorial`, `phj-local-browser-shift`) — Lane A is done | They use browser control; approvals are stored per task | Those two stall on a permission prompt with nobody there to click |
+| 2 | **Repo public, or GitHub Pro?** | GitHub refuses branch protection on a free private repo. A local pre-push hook now covers the real risk, but server-side protection needs one of these | Low — the hook holds for local shifts |
+| 3 | **Buy a domain?** | Now urgent: 60 new artist pages bake the `.vercel.app` alias into their canonical and social meta | ~€12/yr. One regenerate now; after launch it invalidates cached previews everywhere |
 | 4 | **Analytics: yes or no?** | Both footers promise readers *"No cookies, no tracking, no newsletter."* I won't break that without you saying so | You ship blind |
 
 **Coming, not blocking:** Signal Engine needs a Reddit API key, an Anthropic API key, and `voice.md` written by you.
@@ -32,6 +32,9 @@
 ---
 
 ## ✅ DONE
+
+- **#8 (open)** — pre-push hook blocking direct pushes to `main`. Verified it blocks a real
+  push. Saying "merge" in chat is unaffected — that's a GitHub API call, not a local push.
 
 - **#7 (open)** — artist page generator + 60 static pages. Takes the publication from **1 shareable URL to 61**.
 - **#6** — four-lane shift system; three shifts moved from cloud to local so they have a browser

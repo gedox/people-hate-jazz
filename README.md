@@ -74,3 +74,20 @@ These are load-bearing. Breaking one is a regression, not a preference.
 - Keyboard navigable, `prefers-reduced-motion` respected.
 
 See [`.impeccable.md`](.impeccable.md) for the full design context.
+
+---
+
+## Git hooks
+
+Run once per clone:
+
+```bash
+sh tools/hooks/install.sh
+```
+
+Installs a `pre-push` hook that refuses direct pushes to `main`. Everything reaches `main`
+through a pull request so the owner sees it first. This matters because scheduled shifts run
+on this machine, sometimes in bypass-permissions mode, where nothing else would stop a direct
+push from skipping review.
+
+Merging a PR is unaffected — that goes through GitHub's API, not a local push.

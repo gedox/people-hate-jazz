@@ -1,0 +1,30 @@
+#!/bin/sh
+# Refuse direct pushes to main. Everything reaches main through a pull request.
+#
+# GitHub branch protection needs a public repo or a paid plan, so this is the
+# local equivalent. It matters because scheduled shifts run on this machine,
+# sometimes in bypass-permissions mode, where nothing else would stop a direct
+# push from skipping the owner's review.
+#
+# Installed by: sh tools/hooks/install.sh
+# Bypass deliberately (rare, and think first): git push --no-verify
+
+protected="refs/heads/main"
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "$protected" ]; then
+    echo ""
+    echo "  BLOCKED: direct push to main."
+    echo ""
+    echo "  Everything reaches main through a pull request, so the owner"
+    echo "  sees it before it ships. Do this instead:"
+    echo ""
+    echo "    git checkout -b <lane>/<what-you-did>"
+    echo "    git push -u origin <lane>/<what-you-did>"
+    echo "    gh pr create --base main"
+    echo ""
+    exit 1
+  fi
+done
+
+exit 0
