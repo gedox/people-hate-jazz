@@ -2,7 +2,7 @@
 
 *The 30-second status. Updated at the end of every work session. Newest at top.*
 
-**Last updated:** 2026-09-03 (scheduled shift) · **Phase:** getting Issue 01 shipped
+**Last updated:** 2026-09-03 (evening) · **Phase:** Issue 01 is live; hardening it
 
 ---
 
@@ -12,26 +12,18 @@
 |---|---|
 | **Repo** | [gedox/people-hate-jazz](https://github.com/gedox/people-hate-jazz) — **private** |
 | **Production** | https://people-hate-jazz-gedox3-4185s-projects.vercel.app |
+| **Merged** | #1 deploy hardening · #2 shift system · #3 CSS shared chrome |
+| **Open PR** | **#4** Restore standing orders to `main` ← *the only thing waiting* |
+| **Shifts** | 3/day live: 07:10 build · 13:10 build · 21:10 research (Paris) |
+| **Blocked on you** | 3 decisions, below |
+
+---|---|
+| **Repo** | [gedox/people-hate-jazz](https://github.com/gedox/people-hate-jazz) — **private** |
+| **Production** | https://people-hate-jazz-gedox3-4185s-projects.vercel.app |
 | **main** | PR #1 is merged — the deploy-hardening work (social cards, meta, 404, caching fix) is live on `main` |
 | **Open PR #2** | **Shift system: standing orders, backlog, handover log** (`CLAUDE.md`, `docs/BACKLOG.md`) ← *needs your review* |
 | **Open PR #3** | **CSS architecture: move shared chrome out of store.css** (this shift's work) ← *needs your review* |
 | **Blocked on you** | Merge review for PR #2 and #3, plus the 3 decisions below |
-
----
-
-## ⚠️ HEADS UP: this shift ran without CLAUDE.md / BACKLOG.md
-
-The scheduled-shift instructions say to start by reading `CLAUDE.md` and `docs/BACKLOG.md`.
-**Neither exists on `main`.** They were drafted in PR #2 (`feat/shift-system`, stacked on
-the now-merged `ship/deploy-hardening`) by a previous session, but that PR is still open
-and unreviewed — so this shift could not treat its contents as standing orders. **Merging
-PR #2 first will fix this for the next scheduled shift.**
-
-In its absence, this shift fell back to: reading `PROGRESS.md`'s "WHAT'S NEXT" table as
-the de facto backlog, checking `git branch -a` / `gh pr list` for existing work before
-starting, and following the hard rules given directly in the shift prompt (one PR, never
-merge own PR, no tracking, no build step/framework/dependency, keep the store's prototype
-banner).
 
 ---
 
