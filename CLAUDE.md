@@ -10,8 +10,13 @@ previous sessions. Everything you need is in this repo.
 3. Read **`.impeccable.md`** — design law. Non-optional before touching anything visual.
 4. Check open PRs: `gh pr list`. **If a PR is awaiting review, do not start work that
    depends on it.** Pick the highest-priority item that doesn't conflict.
-5. Do the work. One item per shift unless they're trivially small.
-6. Open a PR. Update `PROGRESS.md`. Stop.
+5. **Confirm the item isn't already done.** The backlog goes stale: only the owner can
+   merge, so a correction can sit unmerged while you read the old version. Before starting,
+   check `git log --oneline -20` and `gh pr list --state merged --limit 10` for work that
+   already covers it. If it's done, mark it done in the backlog, say so in `PROGRESS.md`,
+   and move to the next item — that alone is a worthwhile shift.
+6. Do the work. One item per shift unless they're trivially small.
+7. Open a PR. Update `PROGRESS.md`. Stop.
 
 ## The owner's role
 

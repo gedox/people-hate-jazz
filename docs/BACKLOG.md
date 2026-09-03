@@ -21,22 +21,7 @@ add an item, put it in priority order and write it so a stranger could do it.
 
 ## P1 — next up
 
-### 1. Extract shared chrome out of `store.css`
-
-**Problem.** `.topbar`, `.modeswitch` and `.btn` are used by every page but defined in
-`assets/css/store.css`. Found this when `404.html` rendered with an unstyled topbar
-because it only loaded `main.css`. Any new page hits the same trap.
-
-**Do.** Move genuinely shared chrome into `main.css` (or a new `chrome.css` loaded
-first). Leave store-specific overrides in `store.css`. Then confirm every page still
-renders identically — this is a pure refactor, zero visual change is the success test.
-
-**Verify.** Screenshot `index.html`, `store.html`, `404.html` before and after. Topbar,
-mode switch and buttons must be pixel-identical. Zero console errors.
-
----
-
-### 2. Mobile and accessibility pass
+### 1. Mobile and accessibility pass
 
 **Problem.** Neither page has been checked below desktop width, and no a11y audit has
 been run. This is a publication — a large share of readers arrive from a phone link.
@@ -51,9 +36,36 @@ overflow. The body must never scroll horizontally.
 
 ---
 
+### 2. Drop `store.css` from `404.html`
+
+**Problem.** `404.html` loads both stylesheets. That was a workaround from PR #1, before
+`.modeswitch` and `.btn` moved into `main.css` (PR #3). It may now be unnecessary.
+
+**Do.** Remove the `store.css` link from `404.html`, then check whether anything on that
+page loses styling. If something does, that rule is also shared chrome and belongs in
+`main.css` — move it and note which.
+
+**Verify.** REQUIRES A BROWSER. Compare `404.html` before and after at 375px and 1440px;
+the topbar, mode switch and both buttons must be unchanged.
+
+---
+
+### 3. Confirm the 760px breakpoint at 900px width
+
+**Problem.** PR #3 moved a `@media (max-width: 760px)` block between stylesheets. It was
+verified at 375px and 1440px, but not at 900px. Low risk, unclosed gap.
+
+**Do.** Load all three pages at 900px and compare computed styles for `.topbar`,
+`.topbar__in`, `.modeswitch`, `.topnav`, `.theme-toggle` against `main` before PR #3
+(commit `a3153cc`).
+
+**Verify.** REQUIRES A BROWSER.
+
+---
+
 ## P2 — soon
 
-### 3. Measure the 51,000px page
+### 2. Measure the 51,000px page
 
 **Problem.** `index.html` renders 60 roster cards plus 100 tracklist rows in one
 document — 51,421px tall. Desktop load is 698ms, which is fine. Nobody has measured a
@@ -66,7 +78,7 @@ reading top to bottom is the point of the format.
 
 ---
 
-### 4. Swap in the real domain *(blocked — see above)*
+### 3. Swap in the real domain *(blocked — see above)*
 
 Once a domain exists: update `ORIGIN` in the `og:`/`twitter:`/`canonical` meta on
 `index.html` and `store.html`, in `robots.txt` and in `sitemap.xml`, then re-render both
@@ -89,20 +101,20 @@ Then point Vercel at the domain and verify the cards resolve at the new origin.
 
 ## P3 — later
 
-### 5. Signal Engine, Phase 1 *(blocked — needs keys)*
+### 4. Signal Engine, Phase 1 *(blocked — needs keys)*
 
 Reddit collector → SQLite → relevance scoring → plaintext digest. No UI. Full spec in
 [`signal-engine.md`](signal-engine.md). Success test: the owner reads the digest and
 thinks *"I'd actually reply to three of these."* Four hours of work that answers whether
 the whole tool is worth building.
 
-### 6. Per-artist share cards
+### 5. Per-artist share cards
 
 The OG template already parameterizes by department. Extending it to render a card per
 artist would make every individual artist link shareable. Only worth doing if artists get
 their own URLs, which they currently don't.
 
-### 7. Issue 02
+### 6. Issue 02
 
 Out of scope until Issue 01 is public and has been seen by actual readers.
 
@@ -110,6 +122,13 @@ Out of scope until Issue 01 is public and has been seen by actual readers.
 
 ## ✅ DONE
 
+- **PR #4** — restored `CLAUDE.md` and `docs/BACKLOG.md` to `main` after they were
+  stranded on an already-merged branch
+- **PR #3** — moved `.modeswitch` and `.btn` out of `store.css` into `main.css`.
+  Local verification found it also flipped a cascade race: the 44px tap-target rule in
+  `main.css` had been silently overridden by `store.css`'s `2.5rem`. Net effect is an
+  accessibility fix. **Lesson: "pure move" refactors between stylesheets can change the
+  cascade — diff computed styles, not just the diff.**
 - **PR #1** — deploy hardening: OG cards, social meta, `vercel.json`, `robots.txt`,
   `sitemap.xml`, 404 page, and a real caching bug fixed (`store.html` loaded `data.js`
   unversioned while `index.html` loaded `data.js?v=8`)
