@@ -19,6 +19,83 @@ add an item, put it in priority order and write it so a stranger could do it.
 
 ---
 
+## ☁ CLOUD-SAFE QUEUE — take from here first if you have no browser
+
+Everything in P1/P2 below needs a browser or a decision from the owner. A cloud shift
+should work **these** instead. All are verifiable programmatically.
+
+### C1. Verify the masthead statistics against the data
+
+**Problem.** `index.html` states as fact: 60 artists, 100 tracks, **29 music videos**,
+**16 live films**, **median track 3:09**, "44 of the hundred are under three minutes, five
+are under ninety seconds". Nobody has checked these against `data.js` and `tracklist.js`.
+A publication printing a wrong number about its own contents is the worst kind of error.
+
+**Do.** Write a throwaway script that recomputes every claim from the data. Fix whichever
+number is wrong — the prose or the data, whichever the evidence says. Report each claim as
+confirmed or corrected in the PR.
+
+**Verify.** The script output. Show it in the PR body.
+
+---
+
+### C2. Link-rot check on all 60 videos
+
+**Problem.** Every artist entry carries a YouTube ID. Videos get deleted, go private, or
+get region-locked. A dead embed in a published magazine is embarrassing and invisible until
+someone clicks.
+
+**Do.** For each ID in `data.js`, request `https://www.youtube.com/oembed?url=...&format=json`.
+A 200 means it's alive; 401/403/404 means it's gone. Rate-limit politely. Report every
+failure in the PR with the artist name so a human can pick a replacement — **do not silently
+swap a video**, the choice of video is editorial.
+
+**Verify.** The check output.
+
+---
+
+### C3. Data integrity audit of `ARTISTS[]`
+
+**Problem.** 60 hand-written records. Nobody has checked them for structural consistency.
+
+**Do.** Verify: every entry has the same field set; no duplicate `id`/slug; no empty strings
+where a value is expected; consistent casing on city and label; `form` and `kind` values are
+from the known sets the filter chips use (`BAND`/`BEATMAKER`/`SOLOIST`/`COLLECTIVE`, `mv`/`live`);
+every `id` is a valid HTML id and matches its anchor. Fix what's mechanical, report what
+needs an editorial decision.
+
+**Verify.** The audit script output, plus `node --check` on the file.
+
+---
+
+### C4. Accessibility audit of the markup
+
+**Problem.** No a11y pass has been run. Much of it is readable from source without a browser.
+
+**Do.** Check: landmark structure (`main`, `nav`, `header`, `footer`); heading order with no
+skipped levels; `alt` text that actually describes the image rather than repeating the title;
+accessible names on every icon-only control; link text that means something out of context;
+`lang` on `html`; the search input's label. Fix what you can see; queue anything needing
+visual confirmation (focus rings, contrast) as a browser item.
+
+**Verify.** Grep-based checks, quoted in the PR. **Do not claim contrast or focus-visibility
+compliance — those need a browser.**
+
+---
+
+### C5. Add JSON-LD structured data
+
+**Problem.** No structured data. For a publication, that's a free win in search results and
+richer link previews.
+
+**Do.** Add a `Periodical`/`Article` JSON-LD block to `index.html` and a suitable type to
+`store.html`. Use the real values already in the meta tags — do not invent an author, a date,
+or an ISSN.
+
+**Verify.** `JSON.parse` the block, and confirm every field matches an existing meta tag.
+
+---
+
 ## P1 — next up
 
 ### 1. Mobile and accessibility pass
