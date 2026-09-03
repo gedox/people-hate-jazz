@@ -2,7 +2,7 @@
 
 *The 30-second status. Updated at the end of every work session. Newest at top.*
 
-**Last updated:** 2026-09-03 · **Phase:** getting Issue 01 shipped
+**Last updated:** 2026-09-03 (scheduled shift) · **Phase:** getting Issue 01 shipped
 
 ---
 
@@ -12,8 +12,26 @@
 |---|---|
 | **Repo** | [gedox/people-hate-jazz](https://github.com/gedox/people-hate-jazz) — **private** |
 | **Production** | https://people-hate-jazz-gedox3-4185s-projects.vercel.app |
-| **Open PR** | **#1 — Deploy hardening & social cards** ← *needs your review* |
-| **Blocked on you** | 3 decisions, listed below |
+| **main** | PR #1 is merged — the deploy-hardening work (social cards, meta, 404, caching fix) is live on `main` |
+| **Open PR #2** | **Shift system: standing orders, backlog, handover log** (`CLAUDE.md`, `docs/BACKLOG.md`) ← *needs your review* |
+| **Open PR #3** | **CSS architecture: move shared chrome out of store.css** (this shift's work) ← *needs your review* |
+| **Blocked on you** | Merge review for PR #2 and #3, plus the 3 decisions below |
+
+---
+
+## ⚠️ HEADS UP: this shift ran without CLAUDE.md / BACKLOG.md
+
+The scheduled-shift instructions say to start by reading `CLAUDE.md` and `docs/BACKLOG.md`.
+**Neither exists on `main`.** They were drafted in PR #2 (`feat/shift-system`, stacked on
+the now-merged `ship/deploy-hardening`) by a previous session, but that PR is still open
+and unreviewed — so this shift could not treat its contents as standing orders. **Merging
+PR #2 first will fix this for the next scheduled shift.**
+
+In its absence, this shift fell back to: reading `PROGRESS.md`'s "WHAT'S NEXT" table as
+the de facto backlog, checking `git branch -a` / `gh pr list` for existing work before
+starting, and following the hard rules given directly in the shift prompt (one PR, never
+merge own PR, no tracking, no build step/framework/dependency, keep the store's prototype
+banner).
 
 ---
 
@@ -21,26 +39,39 @@
 
 | # | Decision | Why it matters | Cost of waiting |
 |---|---|---|---|
-| 1 | **Review & merge PR #1** | Nothing is public until this lands | Site stays unshipped |
-| 2 | **Buy a domain?** (`peoplehatejazz.com` or similar) | Every social card, canonical URL and sitemap currently hardcodes the ugly `.vercel.app` alias. Changing later means re-rendering all cards | ~€12/yr. Low, but it's a one-line fix now vs. a chore later |
-| 3 | **Repo public or private?** | Currently private. Public is free marketing for a publication like this | None — reversible |
-| 4 | **Analytics: yes or no?** | Both footers publicly promise *"No cookies, no tracking, no newsletter."* I will not break that promise without you saying so | You fly blind on what's working |
+| 1 | **Review & merge PR #2** (shift system) | Every future scheduled shift starts cold without it — this is the fix for the problem above | Repeated confusion / wasted first minutes each shift |
+| 2 | **Review & merge PR #3** (CSS architecture) | Small, mechanical, pure-move refactor — see PR for verification notes | `.modeswitch`/`.btn` stay misplaced in `store.css` |
+| 3 | **Buy a domain?** (`peoplehatejazz.com` or similar) | Every social card, canonical URL and sitemap currently hardcodes the ugly `.vercel.app` alias. Changing later means re-rendering all cards | ~€12/yr. Low, but it's a one-line fix now vs. a chore later |
+| 4 | **Repo public or private?** | Currently private. Public is free marketing for a publication like this | None — reversible |
+| 5 | **Analytics: yes or no?** | Both footers publicly promise *"No cookies, no tracking, no newsletter."* Will not break that promise without you saying so | You fly blind on what's working |
 
 **Not asking yet, but coming:** the Signal Engine needs a Reddit API key, an Anthropic API key, and `voice.md` written by you. Nothing else is blocked on you.
 
 ---
 
-## ✅ WHAT I DID THIS SESSION
+## ✅ WHAT I DID THIS SESSION (scheduled shift, no browser available)
 
-- **Found the existing site** — magazine (60 artists) + store (140 lots). Audited it: zero console errors, 698 ms load, video facades correct, all images lazy + alt'd, clean heading order. **Base quality is high.**
-- **Made it a repository.** Git init, `.gitignore`, `.gitattributes`, README documenting the load-bearing rules.
-- **Wired Vercel** to the repo — production on `main`, preview URL on every PR.
-- **Opened PR #1**, containing:
-  - **Social cards** — generated 1200×630 OG images in house style (flame for magazine, ultramarine for store), rendered from a committed HTML template via headless Chrome so they're regenerable
-  - **Full OG / Twitter / canonical meta** on both pages — links previewed as blank cards before this
-  - **Fixed a real caching bug** — `store.html` loaded `data.js` unversioned while `index.html` loaded `data.js?v=8`; a CDN would have served two different cached copies of the same file to the two pages. All assets now on one version
-  - `vercel.json` — security headers, immutable caching on `/assets`, revalidate on HTML
-  - `robots.txt`, `sitemap.xml`, and a **404 page** in house style
+Confirmed PR #1 was already merged (this file was stale — still said "needs your review").
+Checked `gh pr list` / `git branch -a` before starting: PR #2 already claims the
+shift-system item, so skipped it (unmerged work, not mine to duplicate) and picked the
+next unclaimed P1 item instead.
+
+**Opened PR #3 — CSS architecture fix**, the item flagged here last session:
+- Moved `.modeswitch` and `.btn` (plus the topbar's mobile-stacking `@media` block) out of
+  `store.css` and into `main.css`, verbatim — no property or selector changes. Confirmed by
+  grep that both classes render on **all three** pages (`index.html`, `store.html`,
+  `404.html`), so they belong in the shared stylesheet, not the store's.
+- Left store-only things in `store.css`: the `--topbar-h` custom property (only read by
+  `.demobar`/`.bidbox`) and the store-context `.btn` usages (`.bidbox__acts .btn`,
+  `.teaser .btn`, `.loadmore .btn`).
+- Bumped every `?v=9` → `?v=10` across all three HTML files, keeping the one-shared-version
+  convention from PR #1's caching fix intact.
+- Verified without a browser: `git diff` shows the moved CSS is byte-identical to what was
+  removed; brace-balance check on both CSS files; `node --check` on all JS (untouched);
+  grepped that all asset references now share `?v=10`.
+- **Not verified:** actual rendering. Said so plainly in the PR — recommend a quick look in
+  a real browser at the ~760px breakpoint and the 404 page before treating this as fully
+  confirmed.
 
 ---
 
@@ -48,11 +79,11 @@
 
 | Priority | Item | Notes |
 |---|---|---|
-| **P0** | Merge PR #1 | Then the site is genuinely live |
-| **P1** | **CSS architecture fix** | `.topbar`, `.modeswitch` and `.btn` are shared chrome but live in `store.css`. Caught this when the 404 page rendered unstyled. Extract to `main.css` or a `chrome.css` |
-| **P1** | **Mobile + accessibility pass** | Run `/audit`, `/critique`, `/polish` per the global workflow. Not yet done on either page |
+| **P0** | Merge PR #2 (shift system) | Unblocks every future scheduled shift from starting cold |
+| **P0** | Merge PR #3 (CSS architecture) | Small and mechanical; see PR for verification notes |
+| **P1** | **Mobile + accessibility pass** | Needs a real browser — not done in this or any prior scheduled shift |
 | **P2** | **Performance: the 51,000px page** | 60 cards + 100 tracks in one document. Fine on desktop, worth measuring on a mid-range phone |
-| **P2** | **Domain + re-render cards** | Trivial once decision #2 lands |
+| **P2** | **Domain + re-render cards** | Trivial once decision #3 lands |
 | **P3** | **Signal Engine, Phase 1** | Spec is in `docs/signal-engine.md`. Blocked on your API keys + `voice.md` |
 
 ---
