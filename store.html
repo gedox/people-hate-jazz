@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE STORE — one-of-one lots from 60 artists | People Hate Jazz</title>
+<meta name="description" content="Sixty private artist shops. One-of-one objects and one-on-one time, sold at auction. Test pressings, handwritten charts, stage-used gear, session tape.">
+<meta name="color-scheme" content="light dark">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="THE STORE — People Hate Jazz">
+<meta property="og:description" content="Sixty artist shops. 140 one-of-one lots. Bid or don't.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,700;12..96,75..100,800&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/main.css?v=8">
+<link rel="stylesheet" href="assets/css/store.css?v=6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2314110e'/%3E%3Ctext y='74' x='50' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='72' fill='%231b2ecc'%3ES%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<a class="skip" href="#content">Skip to the lots</a>
+
+<!-- ── TOP BAR ─────────────────────────────────────────────────────── -->
+<div class="topbar">
+  <div class="shell topbar__in">
+    <a class="topbar__mark" href="index.html">PEOPLE HATE <b>JAZZ</b></a>
+    <div class="modeswitch">
+      <a href="index.html">Magazine</a>
+      <a href="store.html" class="is-store" aria-current="page">Store</a>
+    </div>
+    <nav class="topnav" aria-label="Store sections">
+      <a href="#/">All lots</a>
+      <a href="#/closing">Closing soon</a>
+      <a href="#/shops">The 60 shops</a>
+      <a href="#/mybids">My bids</a>
+      <a href="#/how">How it works</a>
+    </nav>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+      <span id="theme-label">Dark</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── DEMO BANNER ─────────────────────────────────────────────────── -->
+<div class="demobar">
+  <div class="shell demobar__in">
+    <b>◆ Prototype</b>
+    <span>Lots are fictional and no payment is taken. Bids are stored in this browser only and are visible to nobody but you.</span>
+  </div>
+</div>
+
+<main id="content" tabindex="-1">
+  <div id="view" aria-live="polite"></div>
+</main>
+
+<!-- ── COLOPHON ────────────────────────────────────────────────────── -->
+<footer class="colophon shell">
+  <div class="colophon__grid">
+    <div>
+      <h4>The Store</h4>
+      <p>
+        The other half of this publication. Sixty artists from the survey, each with
+        a private shop, each selling things that only exist once — a test pressing,
+        a page out of a notebook, the cymbal that cracked, two hours of somebody's
+        undivided attention.
+      </p>
+    </div>
+    <div>
+      <h4>How bidding works</h4>
+      <ul>
+        <li><b>1.</b> Bids must beat the current bid by at least the step shown.</li>
+        <li><b>2.</b> Steps rise with price: $10 under $200, up to $250 over $2,500.</li>
+        <li><b>3.</b> Highest bid at close wins. There are no proxy bids.</li>
+        <li><b>4.</b> One of everything. Nothing here gets restocked.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Status</h4>
+      <p>
+        This is a working front end, not a live marketplace. The catalogue is
+        invented, the artists are real, and nothing on this page constitutes an
+        actual offer to sell. Wire it to a server and it becomes one.
+      </p>
+      <p class="storefoot-note">
+        Your bids and watchlist live in <b>localStorage</b>. Clearing site data
+        clears them. Nothing is sent anywhere.
+      </p>
+    </div>
+  </div>
+
+  <div class="bigmark" aria-hidden="true">The Store</div>
+
+  <div class="colophon__end">
+    <span>Issue 01</span>
+    <span><a href="index.html">Back to the magazine &#8599;</a></span>
+    <span>No cookies, no tracking, no newsletter</span>
+    <span style="margin-left:auto;color:var(--ultra)">◆ One of one</span>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/lots.js"></script>
+<script src="assets/js/store.js?v=2"></script>
+</body>
+</html>
