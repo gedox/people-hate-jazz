@@ -5,18 +5,32 @@ previous sessions. Everything you need is in this repo.
 
 ## Start every shift like this
 
-1. Read **`PROGRESS.md`** — current status, open PRs, what's blocked on the owner.
-2. Read **`docs/BACKLOG.md`** — the prioritized queue.
-3. Read **`.impeccable.md`** — design law. Non-optional before touching anything visual.
-4. Check open PRs: `gh pr list`. **If a PR is awaiting review, do not start work that
+1. Read **`docs/LANES.md`** — which lane you are, and which files you may touch. Shifts
+   run in parallel lanes so they never collide. **Never edit another lane's files.**
+2. Read **`PROGRESS.md`** — current status, open PRs, what's blocked on the owner.
+3. Read **`docs/BACKLOG.md`** — the prioritized queue.
+4. Read **`.impeccable.md`** — design law. Non-optional before touching anything visual.
+5. Check open PRs: `gh pr list`. **If a PR is awaiting review, do not start work that
    depends on it.** Pick the highest-priority item that doesn't conflict.
-5. **Confirm the item isn't already done.** The backlog goes stale: only the owner can
+6. **Confirm the item isn't already done.** The backlog goes stale: only the owner can
    merge, so a correction can sit unmerged while you read the old version. Before starting,
    check `git log --oneline -20` and `gh pr list --state merged --limit 10` for work that
    already covers it. If it's done, mark it done in the backlog, say so in `PROGRESS.md`,
    and move to the next item — that alone is a worthwhile shift.
-6. Do the work. One item per shift unless they're trivially small.
-7. Open a PR. Update `PROGRESS.md`. Stop.
+7. Do the work. One item per shift unless they're trivially small.
+8. Open a PR. Update `PROGRESS.md`. Stop.
+
+## What counts as a good shift
+
+Issue 01 is finished and live. **Polishing it further has sharply diminishing returns.**
+The strategy is to build an audience before taking any client, and that needs things to
+distribute. Priority order is therefore:
+
+> **shareable surface → content volume → tooling → polish**
+
+If an item doesn't move one of those, it's maintenance. Maintenance is allowed — never
+ahead of growth. A shift that ships a real piece of the per-artist-pages epic beats three
+shifts of tidying.
 
 ## The owner's role
 
