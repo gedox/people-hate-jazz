@@ -1,10 +1,26 @@
 # BACKLOG
 
-Prioritized queue. Each item is self-contained — a cold session should be able to pick
-the top unblocked item and work it without asking anything.
+**Read `docs/LANES.md` first** — it says which lane you're working and what you may touch.
+Shifts run in parallel lanes so they never collide.
 
-**Rules:** one item per shift. Don't start work that depends on an unmerged PR. If you
-add an item, put it in priority order and write it so a stranger could do it.
+**Rules:** one item per shift. Confirm your item isn't already done (`git log`, merged PRs)
+— the backlog goes stale because only the owner can merge. Don't start work that depends on
+an unmerged PR. If you add an item, write it so a stranger could do it.
+
+---
+
+## 🎯 WHAT "GROWTH" MEANS HERE
+
+Issue 01 is finished and live. Polishing it further has sharply diminishing returns.
+
+The strategy is: **build the audience before taking a single client.** That needs things to
+distribute. Right now the entire publication is **one URL** — sixty artists and you cannot
+share any single one of them. Fixing that multiplies the shareable surface by sixty.
+
+Priority order: **shareable surface → content volume → tooling → polish.**
+
+If an item doesn't move one of those, it's maintenance. Maintenance is allowed, never ahead
+of growth.
 
 ---
 
@@ -12,124 +28,165 @@ add an item, put it in priority order and write it so a stranger could do it.
 
 | Item | What's needed | Impact |
 |---|---|---|
-| **Domain decision** | Buy a domain, or confirm we stay on the `.vercel.app` alias | Every absolute URL and both social cards hardcode the alias. One commit to change before launch; after launch it invalidates cached social previews everywhere |
-| **Repo visibility** | Public or private? Currently private | Public repo is free marketing for a publication |
-| **Analytics** | Yes / no / privacy-preserving only | Footers promise "no tracking". Without a decision we ship blind |
-| **Signal Engine keys** | Reddit API creds + Anthropic API key + `voice.md` written by the owner | Blocks the entire tool in `docs/signal-engine.md` |
+| **Domain** | Buy one, or confirm we stay on the `.vercel.app` alias | Every absolute URL and social card hardcodes the alias. Blocks Epic A1 finishing cleanly — 60 new pages would bake in the wrong origin |
+| **Repo visibility** | Public or private? | Public is free marketing for a publication |
+| **Analytics** | Yes / no / privacy-preserving | Footers promise "no tracking". Undecided means shipping blind |
+| **Signal Engine keys** | Reddit API creds + Anthropic API key + `voice.md` | Blocks A2 from finishing (fixture work can proceed) |
 
 ---
 
-## P1 — next up
+# 🅰 LANE A — PRODUCT & ENGINEERING  *(local, 08:10)*
 
-### 1. Mobile and accessibility pass
+## EPIC A1 — Per-artist pages · **the flagship, do this first**
 
-**Problem.** Neither page has been checked below desktop width, and no a11y audit has
-been run. This is a publication — a large share of readers arrive from a phone link.
+Sixty artists share one URL. This turns the publication into **61 shareable things**, each
+with its own social card. Highest-leverage item in the project; the whole distribution
+strategy depends on it.
 
-**Do.** Per the global workflow, run `/audit`, then `/critique`, then `/polish`. Check
-at 375px, 768px and 1440px. Specifically verify: the roster grid reflows, the store
-catalogue is usable one-handed, tap targets are ≥44px, focus rings are visible on the
-newsprint ground, and `prefers-reduced-motion` actually suppresses the reveal animations.
+**Constraint.** The *served site* has no build step — that stays true. A one-time generator
+whose output is committed is fine; the OG cards already set that precedent.
 
-**Verify.** `resize_window` to each breakpoint, screenshot each, and read the page for
-overflow. The body must never scroll horizontally.
+Shift-sized chunks, in order, one per shift.
 
----
+### A1.1 — The generator
+Write `tools/artists/build.mjs`. Reads `ARTISTS[]` from `assets/js/data.js`, emits one static
+page per artist at `a/<slug>.html`. Template beside it. Reuse `main.css` + `store.css`;
+introduce no new design language — `.impeccable.md` still governs.
+**Each page needs:** the entry and credits, the video as a click-to-play facade (never a live
+iframe), prev/next artist links, a link back to the survey, its own `canonical`, and full
+`og:`/`twitter:` meta.
+**Verify:** generator runs clean, emits exactly 60 files, every slug unique and URL-safe,
+`node --check` passes. Commit the generator **and** its output.
 
-### 2. Drop `store.css` from `404.html`
+### A1.2 — Per-artist social cards
+Extend `tools/og/card.html` with an artist variant: the artist's name as the wordmark, their
+city and one-line description, flame accent. Render all 60 via headless Chrome into
+`assets/og/a/<slug>.png`. Wire each into its page's meta.
+**Verify:** 60 PNGs at exactly 1200×630; spot-check five visually; every `og:image` resolves.
 
-**Problem.** `404.html` loads both stylesheets. That was a workaround from PR #1, before
-`.modeswitch` and `.btn` moved into `main.css` (PR #3). It may now be unnecessary.
+### A1.3 — Wire the survey to the pages
+Every roster entry on `index.html` and every index-grid name links to its artist page. Keep
+existing on-page anchors working — don't break deep links.
+**Verify:** REQUIRES A BROWSER. All 60 links resolve, no 404s, roster still filters.
 
-**Do.** Remove the `store.css` link from `404.html`, then check whether anything on that
-page loses styling. If something does, that rule is also shared chrome and belongs in
-`main.css` — move it and note which.
-
-**Verify.** REQUIRES A BROWSER. Compare `404.html` before and after at 375px and 1440px;
-the topbar, mode switch and both buttons must be unchanged.
-
----
-
-### 3. Confirm the 760px breakpoint at 900px width
-
-**Problem.** PR #3 moved a `@media (max-width: 760px)` block between stylesheets. It was
-verified at 375px and 1440px, but not at 900px. Low risk, unclosed gap.
-
-**Do.** Load all three pages at 900px and compare computed styles for `.topbar`,
-`.topbar__in`, `.modeswitch`, `.topnav`, `.theme-toggle` against `main` before PR #3
-(commit `a3153cc`).
-
-**Verify.** REQUIRES A BROWSER.
+### A1.4 — Sitemap and discovery
+Add all 60 pages to `sitemap.xml`, add prev/next `rel` links, confirm `robots.txt` allows them.
 
 ---
 
-## P2 — soon
+### A2 — Signal Engine Phase 1 *(partly blocked)*
+Reddit collector → SQLite → relevance scoring → plaintext digest. No UI. Spec in
+[`signal-engine.md`](signal-engine.md). **Unblocked work available now:** write the collector
+and scorer against committed fixture data so it's testable without credentials. That's a real
+shift and it takes the key dependency off the critical path.
 
-### 2. Measure the 51,000px page
+### A3 — Measure the 51,000px page
+`index.html` is 51,421px tall; desktop load 698ms; nobody has measured a mid-range phone.
+Measure before optimizing. If slow, `content-visibility: auto` with `contain-intrinsic-size`
+is the cheapest fix — no JS, no build step. **Do not paginate the roster**; reading top to
+bottom is the point of the format.
 
-**Problem.** `index.html` renders 60 roster cards plus 100 tracklist rows in one
-document — 51,421px tall. Desktop load is 698ms, which is fine. Nobody has measured a
-mid-range phone.
-
-**Do.** Measure first, optimize second. If it's genuinely slow, the cheapest fix is
-`content-visibility: auto` with `contain-intrinsic-size` on the roster entries — no JS,
-no virtualization, keeps the no-build-step constraint. Do **not** paginate the roster;
-reading top to bottom is the point of the format.
-
----
-
-### 3. Swap in the real domain *(blocked — see above)*
-
-Once a domain exists: update `ORIGIN` in the `og:`/`twitter:`/`canonical` meta on
-`index.html` and `store.html`, in `robots.txt` and in `sitemap.xml`, then re-render both
-social cards:
-
-```bash
-CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"
-BASE='C:\Users\gil-e\Desktop\new code\in progress\people hate jazz'
-SRC="file:///C:/Users/gil-e/Desktop/new%20code/in%20progress/people%20hate%20jazz/tools/og/card.html"
-for d in magazine store; do
-  "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
-    --virtual-time-budget=9000 --window-size=1200,630 \
-    --screenshot="$BASE\\assets\\og\\og-$d.png" "$SRC?dept=$d"
-done
-```
-
-Then point Vercel at the domain and verify the cards resolve at the new origin.
+### A4 — Swap in the real domain *(blocked)*
+Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.txt` and
+`sitemap.xml`, then re-render all social cards. Command in `docs/LANES.md`.
 
 ---
 
-## P3 — later
+# 🅱 LANE B — EDITORIAL & CONTENT  *(local, 13:10)*
 
-### 4. Signal Engine, Phase 1 *(blocked — needs keys)*
+Owns words and data. Never touches CSS or layout.
 
-Reddit collector → SQLite → relevance scoring → plaintext digest. No UI. Full spec in
-[`signal-engine.md`](signal-engine.md). Success test: the owner reads the digest and
-thinks *"I'd actually reply to three of these."* Four hours of work that answers whether
-the whole tool is worth building.
+### B1 — Verify the masthead's own statistics · **do this first**
+`index.html` states as fact: 29 music videos, 16 live films, median track 3:09, 44 tracks
+under three minutes, five under ninety seconds. **Nobody has checked these against `data.js`
+and `tracklist.js`.** A magazine printing a wrong number about its own contents is the worst
+kind of error, and it's on the front page.
+**Do:** recompute every claim from the data. Fix whichever is wrong — prose or data,
+whichever the evidence supports. Report each claim confirmed or corrected.
 
-### 5. Per-artist share cards
+### B2 — Link-rot sweep on all 60 videos
+Videos get deleted, go private, get region-locked; a dead embed is invisible until a reader
+clicks. Request `https://www.youtube.com/oembed?url=...&format=json` per ID — 200 alive,
+401/403/404 gone. Rate-limit politely. **Report failures by artist name; never silently swap
+a video.** Choosing a replacement is an editorial decision.
 
-The OG template already parameterizes by department. Extending it to render a card per
-artist would make every individual artist link shareable. Only worth doing if artists get
-their own URLs, which they currently don't.
+### B3 — Data integrity audit of `ARTISTS[]`
+Sixty hand-written records, never checked. Verify identical field sets, no duplicate
+`id`/slug, no empty strings where a value is expected, consistent city/label casing,
+`form`/`kind` drawn from the sets the filter chips use, every `id` a valid HTML id matching
+its anchor. Fix what's mechanical; report what needs an editorial call.
 
-### 6. Issue 02
+### B4 — Issue 02 artist pipeline · **recurring, high value**
+Issue 01 is closed; Issue 02 needs a longlist. Each shift add 3–5 candidates to
+`docs/issue-02/longlist.md`: artist, release, label, city, why they fit, link. Prefer the
+genuinely under-covered over the obvious. Draw on `docs/research/`.
+**This is the content pipeline. It should never be empty.**
 
-Out of scope until Issue 01 is public and has been seen by actual readers.
+### B5 — Enrich the existing sixty
+Several entries have blank origins, left blank rather than guessed — the colophon says so,
+keep that honesty. Research what can be **confirmed** and fill it, citing the source in the
+PR. Leave anything unconfirmable blank.
+
+---
+
+# 🅲 LANE C — DESIGN & VISUAL  *(local, 17:40 — the browser lane)*
+
+Owns how it looks. Load `/frontend-design` before UI work; finish with `/critique`,
+`/audit`, `/polish`.
+
+### C1 — Mobile and accessibility pass · **do this first**
+Neither page has been checked below desktop width; no a11y audit has run. Most readers
+arrive from a phone link. Check 375 / 768 / 1440. Verify: roster grid reflows, store
+catalogue usable one-handed, tap targets ≥44px, focus rings visible on the newsprint ground,
+`prefers-reduced-motion` genuinely suppresses the reveal animations, body never scrolls
+horizontally.
+
+### C2 — Drop `store.css` from `404.html`
+It loads both stylesheets — a workaround from PR #1, before `.modeswitch`/`.btn` moved into
+`main.css`. Probably unnecessary now. Remove and see what breaks; anything that does is also
+shared chrome and belongs in `main.css`.
+
+### C3 — Confirm the 760px breakpoint at 900px
+PR #3 moved a `@media (max-width: 760px)` block between stylesheets. Verified at 375 and
+1440, never at 900. Compare computed styles against commit `a3153cc`.
+
+### C4 — Accessibility of the markup
+Landmarks, heading order, alt text that describes rather than repeats, accessible names on
+icon-only controls, meaningful link text, the search input's label. You have a browser, so
+**do** check contrast and focus visibility rather than skipping them.
+
+### C5 — Design the artist page *(after A1.1 exists)*
+The generator ships a functional template; Lane C makes it good. A real design brief, not a
+polish pass — this is the page most new readers will land on.
+
+---
+
+# 🅳 LANE D — RESEARCH & GROOMING  *(cloud, 21:10)*
+
+Owns no code.
+
+### D1 — Audit the handover
+Is `PROGRESS.md` true? Compare against open PRs, merged PRs, recent commits. Fix what's
+stale. It's the project's only memory between shifts.
+
+### D2 — One research note per shift
+Dated note in `docs/research/`. Rotate topics; check what's already covered. Feed findings
+into B4.
+- Artists for Issue 02 — recent releases, under-covered over obvious
+- Where this could be seen — radio, blogs, newsletters, curators, forums. **Research only, contact nobody.**
+- Reference publications — how comparable magazines structure issues and archives
+- Technical/design opportunities, written up as proper backlog items
 
 ---
 
 ## ✅ DONE
 
-- **PR #4** — restored `CLAUDE.md` and `docs/BACKLOG.md` to `main` after they were
-  stranded on an already-merged branch
-- **PR #3** — moved `.modeswitch` and `.btn` out of `store.css` into `main.css`.
-  Local verification found it also flipped a cascade race: the 44px tap-target rule in
-  `main.css` had been silently overridden by `store.css`'s `2.5rem`. Net effect is an
-  accessibility fix. **Lesson: "pure move" refactors between stylesheets can change the
-  cascade — diff computed styles, not just the diff.**
-- **PR #1** — deploy hardening: OG cards, social meta, `vercel.json`, `robots.txt`,
-  `sitemap.xml`, 404 page, and a real caching bug fixed (`store.html` loaded `data.js`
-  unversioned while `index.html` loaded `data.js?v=8`)
-- Repo created, Vercel linked, production + preview deploys working
+- **PR #5** — groomed the backlog; hardened standing orders against stale work orders
+- **PR #4** — restored `CLAUDE.md`/`BACKLOG.md` to `main` after they were stranded
+- **PR #3** — moved `.modeswitch`/`.btn` into `main.css`. Local verification found it also
+  flipped a cascade race: a 44px tap-target rule had been silently overridden by
+  `store.css`'s `2.5rem`. Net effect an accessibility fix. **Lesson: "pure move" refactors
+  between stylesheets can change the cascade — diff computed styles, not just the diff.**
+- **PR #2** — shift system
+- **PR #1** — deploy hardening: social cards, meta, `vercel.json`, robots, sitemap, 404, and
+  a real caching bug (`store.html` loaded `data.js` unversioned)
