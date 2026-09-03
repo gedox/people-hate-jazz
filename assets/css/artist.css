@@ -1,0 +1,106 @@
+/* PEOPLE HATE JAZZ — artist pages.
+   Layout only. Everything here uses tokens already defined in main.css;
+   this file introduces no new colours, fonts or scale. */
+
+.artist { padding-block: var(--s-5) var(--s-6); }
+
+/* ── breadcrumb ───────────────────────────────────────────────────────── */
+
+.crumb {
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--rule);
+}
+.crumb a { color: inherit; }
+.crumb a:hover { color: var(--flame-ink); }
+.crumb .sep { margin-inline: .5em; color: var(--flame-ink); }
+
+/* ── head ─────────────────────────────────────────────────────────────── */
+
+.artist__head { padding-block: var(--s-4) var(--s-4); }
+
+.artist__num {
+  font-family: var(--mono); font-size: var(--t-1);
+  letter-spacing: .1em; color: var(--flame-ink);
+  margin: 0 0 var(--s-2);
+}
+
+.artist__name {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--t-5); line-height: .84;
+  letter-spacing: -.04em; text-transform: uppercase;
+  font-variation-settings: "wdth" 100, "opsz" 48;
+  margin: 0 0 var(--s-3);
+  word-break: break-word;
+}
+
+.artist__head .entry__rail { margin: 0; }
+
+/* ── body ─────────────────────────────────────────────────────────────── */
+
+.artist__body {
+  display: grid;
+  gap: var(--s-5);
+  grid-template-columns: 1fr;
+  padding-block: var(--s-4);
+  border-top: 1px solid var(--ink);
+}
+
+@media (min-width: 900px) {
+  .artist__body { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--s-5); }
+  .artist__media { position: sticky; top: 6rem; align-self: start; }
+}
+
+.artist__text > * + * { margin-top: var(--s-3); }
+.artist__text .entry__blurb { max-width: var(--measure); }
+
+/* ── prev / next ──────────────────────────────────────────────────────── */
+
+.artist__nav {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--ink);
+}
+
+@media (min-width: 700px) {
+  .artist__nav { grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s-4); }
+  .artist__nav-next { text-align: right; }
+  .artist__nav-all  { text-align: center; }
+}
+
+.artist__nav a {
+  display: block;
+  min-height: 44px;
+  padding: .6rem .2rem;
+  text-decoration: none;
+}
+.artist__nav a span {
+  display: block;
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.artist__nav a b {
+  display: block;
+  font-family: var(--display); font-weight: 700;
+  font-size: var(--t-2); line-height: 1.05;
+  letter-spacing: -.02em;
+  margin-top: .15em;
+}
+.artist__nav a:hover b { color: var(--flame-ink); }
+
+.artist__nav-all {
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid var(--rule-hard);
+  align-content: center;
+}
+.artist__nav-all:hover { border-color: var(--ink); }
+
+/* The player replaces the facade in place and must keep its box. */
+.artist__media .player { width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; }
