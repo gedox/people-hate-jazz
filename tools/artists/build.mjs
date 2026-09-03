@@ -43,12 +43,18 @@ const KIND_LABEL = { mv: "Music video", live: "Live film", vis: "Visualiser", tr
 
 const pad = (n) => String(n).padStart(2, "0");
 
-/* Per-artist social cards are generated separately (backlog A1.2). Use one if
-   it exists, otherwise fall back to the magazine card so the meta is never broken. */
+/* Per-artist social cards are rendered separately by tools/og/build-artists.mjs.
+   Use one if it exists, otherwise fall back to the magazine card so the meta is
+   never broken. */
 const cardFor = (slug) =>
   existsSync(join(ROOT, "assets", "og", "a", `${slug}.png`))
     ? `${origin}/assets/og/a/${slug}.png`
     : `${origin}/assets/og/og-magazine.png`;
+
+/* Describes what the card actually says, for readers on a screen reader who get
+   the link preview but not the picture. */
+const cardAlt = (a) =>
+  `${a.name} — No. ${pad(a.n)} in the Jamies Survey. ${a.pull}`;
 
 /* ── template ────────────────────────────────────────────────────────── */
 
@@ -80,10 +86,12 @@ function page(a, prev, next) {
 <meta property="og:image" content="${cardFor(a.slug)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${esc(cardAlt(a))}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(a.name)} — People Hate Jazz">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${cardFor(a.slug)}">
+<meta name="twitter:image:alt" content="${esc(cardAlt(a))}">
 <link rel="canonical" href="${url}">
 <link rel="prev" href="${origin}/a/${prev.slug}.html">
 <link rel="next" href="${origin}/a/${next.slug}.html">
