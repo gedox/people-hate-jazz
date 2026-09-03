@@ -58,11 +58,13 @@ iframe), prev/next artist links, a link back to the survey, its own `canonical`,
 **Verify:** generator runs clean, emits exactly 60 files, every slug unique and URL-safe,
 `node --check` passes. Commit the generator **and** its output.
 
-### A1.2 — Per-artist social cards
+### A1.2 — Per-artist social cards · ✅ **DONE — PR #10**
 Extend `tools/og/card.html` with an artist variant: the artist's name as the wordmark, their
 city and one-line description, flame accent. Render all 60 via headless Chrome into
 `assets/og/a/<slug>.png`. Wire each into its page's meta.
 **Verify:** 60 PNGs at exactly 1200×630; spot-check five visually; every `og:image` resolves.
+*Shipped as `tools/og/build-artists.mjs` (~36s for all 60). Also added the `og:image:alt`
+the artist pages were missing. Cards total 21.5 MB — see A6.*
 
 ### A1.3 — Wire the survey to the pages
 Every roster entry on `index.html` and every index-grid name links to its artist page. Keep
@@ -85,6 +87,33 @@ shift and it takes the key dependency off the critical path.
 Measure before optimizing. If slow, `content-visibility: auto` with `contain-intrinsic-size`
 is the cheapest fix — no JS, no build step. **Do not paginate the roster**; reading top to
 bottom is the point of the format.
+
+### A5 — One git worktree per shift · **now blocking safe parallel work**
+*Added by Lane A, 2026-09-04, after three shifts ran concurrently and fought over one tree.*
+
+The lane system partitions **files**. It does not partition the **checkout**. Three local
+shifts sharing one working directory produced, in about ten minutes: a `git checkout` that
+moved the branch under another shift mid-run (three commits landed on local `main`, having
+bypassed review), a `git clean -fd` that deleted another shift's unstaged generator and 60
+rendered PNGs, and the same work delivered twice as two PRs on the same commit.
+
+**Do:** give each shift its own worktree (`git worktree add ../phj-lane-a lane-a/<work>`),
+or serialise the schedule so no two local shifts overlap. A shift should also refuse to
+start if the tree is dirty with work that isn't its own.
+**Verify:** run two shifts at once and confirm neither sees the other's files.
+
+### A6 — Shrink the sixty artist cards
+*Added by Lane A, 2026-09-04, while shipping A1.2.*
+
+`assets/og/a/` is **21.5 MB** — 60 PNGs at ~368 KB. The baked-in grain plate is noise and
+compresses badly as truecolour. Every card is comfortably under the ~1 MB that scrapers
+care about, so this is repo weight, not a reader-facing bug.
+
+Measured: palette-quantising one card to 256 colours took it 329 KB → 154 KB (**53% off**,
+~11 MB across the set) with no visible change, since the artwork is four flat inks plus
+noise. Pillow does it in three lines but is a Python dependency in a Node generator; a
+palette encoder on `node:zlib` avoids that. **Do not** reduce the grain to save bytes —
+it is the same plate as the site and Lane C owns it.
 
 ### A4 — Swap in the real domain *(blocked)*
 Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.txt` and
