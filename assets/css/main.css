@@ -223,6 +223,71 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
 }
 .theme-toggle:hover { background: var(--flame); color: var(--on-flame); }
 
+/* ── 05b MODE SWITCH (shared chrome — magazine ⇄ store) ─────────────────
+   Lives here, not in store.css, so any page linking only main.css (the
+   404, say) still gets a styled topbar. */
+
+.modeswitch {
+  display: flex; align-items: stretch;
+  border-right: 1px solid var(--rule);
+  flex: none;
+}
+.modeswitch a {
+  display: flex; align-items: center;
+  padding-inline: clamp(.6rem, 1.5vw, .95rem);
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .12em; text-transform: uppercase;
+  text-decoration: none; white-space: nowrap;
+  border-right: 1px solid var(--rule);
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+.modeswitch a:last-child { border-right: 0; }
+.modeswitch a:hover { background: var(--wash); }
+.modeswitch a[aria-current="page"] { background: var(--ink); color: var(--paper); }
+.modeswitch a[aria-current="page"].is-store { background: var(--ultra); color: var(--on-ultra); }
+
+/* Below this width the mark + mode switch + theme toggle already fill the
+   row, so `flex:1` leaves the nav zero width and the store's own sections
+   become unreachable. Give the nav its own row instead of shrinking it. */
+@media (max-width: 760px) {
+  .topbar__in { flex-wrap: wrap; }
+  /* Explicit order + a zero-height flex breaker, so it lands as exactly two
+     rows — mark/switch, then nav/toggle. Left to wrap on its own the toggle
+     spills onto a third row and the sticky offset below stops matching. */
+  .topbar__mark   { order: 1; flex: 1 1 auto; border-right: 0; min-height: 3.1rem; }
+  .modeswitch     { order: 2; border-right: 0; }
+  .topbar__in::after { content: ""; order: 3; flex: 0 0 100%; height: 0; }
+  /* max-width leaves room for the toggle beside it; without it the nav grows
+     to the full row and pushes the toggle onto a third line. A zero basis is
+     no good either — it collapses onto the breaker's line at width 0. */
+  .topnav         { order: 4; flex: 1 1 auto; min-width: 0; max-width: calc(100% - 5.5rem);
+                    border-top: 1px solid var(--rule); }
+  .theme-toggle   { order: 5; flex: 0 0 auto; border-top: 1px solid var(--rule); }
+
+  .topnav, .theme-toggle { min-height: 2.5rem; }
+  .topnav a:first-child { padding-left: 0; }
+
+  html { scroll-padding-top: 7rem; }
+}
+
+/* ── 05c BUTTON (shared chrome) ──────────────────────────────────────── */
+
+.btn {
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .14em; text-transform: uppercase;
+  padding: .55rem 1.1rem;
+  border: 1px solid var(--ink);
+  background: var(--ink); color: var(--paper);
+  transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) { background: var(--ultra); border-color: var(--ultra); color: var(--on-ultra); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn--ghost { background: none; color: inherit; }
+.btn--ghost:hover:not(:disabled) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btn--ghost[aria-pressed="true"] { background: var(--ultra); border-color: var(--ultra); color: var(--on-ultra); }
+.btn--wide { width: 100%; text-align: center; display: block; }
+
 /* ── 06 MASTHEAD ──────────────────────────────────────────────────────── */
 
 .masthead { padding-block: clamp(1.5rem, 3vw, 3rem) 0; }
