@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OG card source</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,700;12..96,75..100,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e8e2d4; --ink:#14110e; --ink-faint:#6e6354;
+    --flame:#ff3b0f; --flame-display:#e63207; --ultra:#1b2ecc;
+    --accent:var(--flame-display);
+  }
+  html[data-dept="store"]{ --accent:var(--ultra); }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"Bricolage Grotesque","Arial Black",sans-serif;
+    position:relative; display:flex; flex-direction:column;
+    padding:54px 62px 48px;
+  }
+
+  /* grain — same plate as the site */
+  .grain{
+    position:absolute; inset:-20%; z-index:9; pointer-events:none;
+    opacity:.34; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* top rule + metadata */
+  .kicker{
+    font-family:"Space Mono",monospace; font-size:19px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase;
+    display:flex; gap:20px; align-items:baseline;
+    padding-bottom:16px; border-bottom:2px solid var(--ink);
+  }
+  .kicker .sep{color:var(--accent)}
+  .kicker .right{margin-left:auto; color:var(--ink-faint); letter-spacing:.12em}
+
+  /* wordmark */
+  .mark{
+    flex:1; display:flex; flex-direction:column; justify-content:center;
+    text-transform:uppercase; font-weight:800; line-height:.79;
+    letter-spacing:-.045em; font-variation-settings:"wdth" 100,"opsz" 48;
+  }
+  .mark span{display:block}
+  .mark .l2{color:var(--accent)}
+
+  /* magazine: three stacked words, staggered */
+  html[data-dept="magazine"] .mark{font-size:158px}
+  html[data-dept="magazine"] .mark .l2{margin-left:74px}
+  html[data-dept="magazine"] .mark .l3{margin-left:148px}
+
+  /* store: small publisher mark, then the department */
+  html[data-dept="store"] .mark{font-size:196px; justify-content:flex-end; padding-bottom:6px}
+  html[data-dept="store"] .overline{
+    font-size:30px; letter-spacing:.02em; font-weight:800;
+    margin-bottom:14px; line-height:1;
+  }
+  html[data-dept="store"] .overline b{color:var(--accent)}
+  html[data-dept="store"] .mark .l2{margin-left:96px}
+
+  /* footer strip */
+  .foot{
+    font-family:"Space Mono",monospace; font-size:20px; font-weight:700;
+    letter-spacing:.13em; text-transform:uppercase;
+    display:flex; gap:18px; align-items:center;
+    padding-top:16px; border-top:2px solid var(--ink);
+  }
+  .foot .dot{color:var(--accent)}
+  .foot .end{margin-left:auto; color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="kicker">
+  <span>Issue 01</span><span class="sep">&#9670;</span>
+  <span class="dept">The Jamies Survey</span>
+  <span class="right">peoplehatejazz</span>
+</div>
+
+<div class="mark" id="mark"></div>
+
+<div class="foot" id="foot"></div>
+
+<script>
+  const dept = new URLSearchParams(location.search).get('dept') || 'magazine';
+  document.documentElement.dataset.dept = dept;
+
+  const COPY = {
+    magazine: {
+      dept: 'The Jamies Survey',
+      mark: '<span class="l1">People</span><span class="l2">Hate</span><span class="l3">Jazz</span>',
+      foot: ['60 Artists', '100 Tracks', 'One video each'],
+      end:  'No skipping'
+    },
+    store: {
+      dept: 'The Store',
+      mark: '<div class="overline">People Hate <b>Jazz</b></div><span class="l1">The</span><span class="l2">Store</span>',
+      foot: ['60 Private shops', '140 Lots', 'Bid or don’t'],
+      end:  'One of one'
+    }
+  }[dept];
+
+  document.querySelector('.dept').textContent = COPY.dept;
+  document.getElementById('mark').innerHTML = COPY.mark;
+  document.getElementById('foot').innerHTML =
+    COPY.foot.map(s => `<span>${s}</span>`).join('<span class="dot">&#9670;</span>') +
+    `<span class="end">&#9670; ${COPY.end}</span>`;
+</script>
+</body>
+</html>

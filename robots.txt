@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://people-hate-jazz-gedox3-4185s-projects.vercel.app/sitemap.xml

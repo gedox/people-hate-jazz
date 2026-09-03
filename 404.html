@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 — nothing filed here | People Hate Jazz</title>
+<meta name="description" content="That page doesn't exist.">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,700;12..96,75..100,800&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/main.css?v=9">
+<link rel="stylesheet" href="assets/css/store.css?v=9">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2314110e'/%3E%3Ctext y='74' x='50' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='72' fill='%23ff3b0f'%3EJ%3C/text%3E%3C/svg%3E">
+
+<style>
+  .nf { padding-block: var(--s-7) var(--s-6); }
+  .nf__num {
+    font-family: var(--display); font-weight: 800; font-size: var(--t-6);
+    line-height: .78; letter-spacing: -.045em; color: var(--flame-display);
+    font-variation-settings: "wdth" 100, "opsz" 48; margin: 0;
+  }
+  .nf__lead {
+    font-family: var(--display); font-weight: 800; text-transform: uppercase;
+    font-size: var(--t-3); line-height: .95; letter-spacing: -.02em;
+    margin: var(--s-3) 0 var(--s-4); max-width: 22ch;
+  }
+  .nf__body { font-family: var(--serif); font-size: var(--t-1); max-width: 46ch; }
+  .nf__body p + p { margin-top: var(--s-3); }
+  .nf__links { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-5); }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<a class="skip" href="#content">Skip to the page</a>
+
+<div class="topbar">
+  <div class="shell topbar__in">
+    <a class="topbar__mark" href="index.html">PEOPLE HATE <b>JAZZ</b></a>
+    <div class="modeswitch">
+      <a href="index.html">Magazine</a>
+      <a href="store.html" class="is-store">Store</a>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+      <span id="theme-label">Dark</span>
+    </button>
+  </div>
+</div>
+
+<main id="content" tabindex="-1">
+  <section class="shell nf">
+    <p class="nf__num">404</p>
+    <h1 class="nf__lead">Nothing<br>filed here</h1>
+    <div class="nf__body">
+      <p>
+        Either somebody linked it wrong or we moved it and didn&rsquo;t say. There is no
+        third explanation and no version of this where the page turns up.
+      </p>
+      <p>
+        The magazine is where you left it. So is the shop, which still has one of
+        everything and only one.
+      </p>
+    </div>
+    <div class="nf__links">
+      <a class="btn" href="index.html">The magazine &#8599;</a>
+      <a class="btn" href="store.html">The store &#8599;</a>
+    </div>
+  </section>
+</main>
+
+<script>
+  // theme toggle — same contract as the rest of the site
+  (function () {
+    var root = document.documentElement,
+        btn  = document.getElementById('theme-toggle'),
+        lbl  = document.getElementById('theme-label'),
+        KEY  = 'phj-theme';
+    function apply(t) {
+      root.setAttribute('data-theme', t);
+      if (lbl) lbl.textContent = t === 'dark' ? 'Light' : 'Dark';
+      if (btn) btn.setAttribute('aria-pressed', String(t === 'dark'));
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    apply(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    if (btn) btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>
