@@ -7,6 +7,13 @@ Shifts run in parallel lanes so they never collide.
 — the backlog goes stale because only the owner can merge. Don't start work that depends on
 an unmerged PR. If you add an item, write it so a stranger could do it.
 
+**Before you pick anything below: `gh pr list` first, not just this file.** As of 2026-09-04
+two open, unreviewed PRs already touch this document — **#12** proposes replacing the whole
+priority order and the Lane A epic below with a store-first strategy (adds its own `EPIC A5`,
+which collides with the worktree `A5` already in this file), and **#11** marks B1 done and
+files A7/B6. Full detail in `PROGRESS.md`. Everything below is the file **on `main`**, i.e.
+the pre-#12 state — treat the priorities here as provisional until the owner resolves #12.
+
 ---
 
 ## 🎯 WHAT "GROWTH" MEANS HERE
@@ -125,13 +132,10 @@ Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.t
 
 Owns words and data. Never touches CSS or layout.
 
-### B1 — Verify the masthead's own statistics · **do this first**
-`index.html` states as fact: 29 music videos, 16 live films, median track 3:09, 44 tracks
-under three minutes, five under ninety seconds. **Nobody has checked these against `data.js`
-and `tracklist.js`.** A magazine printing a wrong number about its own contents is the worst
-kind of error, and it's on the front page.
-**Do:** recompute every claim from the data. Fix whichever is wrong — prose or data,
-whichever the evidence supports. Report each claim confirmed or corrected.
+### B1 — Verify the masthead's own statistics · ⏳ **done, awaiting review — PR #11, don't redo**
+All ten claims checked out; nothing was wrong. Track durations were committed to
+`tracklist.js` so the numbers are auditable offline from now on. **Not yet merged** — confirm
+`gh pr list --state merged` shows #11 before striking this item for real.
 
 ### B2 — Link-rot sweep on all 60 videos
 Videos get deleted, go private, get region-locked; a dead embed is invisible until a reader
@@ -150,6 +154,10 @@ Issue 01 is closed; Issue 02 needs a longlist. Each shift add 3–5 candidates t
 `docs/issue-02/longlist.md`: artist, release, label, city, why they fit, link. Prefer the
 genuinely under-covered over the obvious. Draw on `docs/research/`.
 **This is the content pipeline. It should never be empty.**
+*Ready to draw on now:* `docs/research/2026-09-04-issue-02-artists.md` — 7 sourced candidates
+(Dave Adewumi, Lolivone de la Rosa, Dolphin Hyperspace, Atlantis Jazz Ensemble, Shane Sato,
+_BY.ALEXANDER, Eligh x FAZE.ONE), plus a pointer to Bandcamp Daily's monthly "Best Jazz" column
+for a browser-equipped shift to mine further — blocked from the cloud lane's network.
 
 ### B5 — Enrich the existing sixty
 Several entries have blank origins, left blank rather than guessed — the colophon says so,
