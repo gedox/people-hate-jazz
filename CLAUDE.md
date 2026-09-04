@@ -22,11 +22,14 @@ previous sessions. Everything you need is in this repo.
 
 ## What counts as a good shift
 
-Issue 01 is finished and live. **Polishing it further has sharply diminishing returns.**
-The strategy is to build an audience before taking any client, and that needs things to
-distribute. Priority order is therefore:
+**The auction is the product.** The magazine is how artists come to trust us enough to list;
+live work and films are what the take-rate funds later. Read the top of `docs/BACKLOG.md`
+before prioritising anything.
 
-> **shareable surface → content volume → tooling → polish**
+The bottleneck is that nobody has proved they want to bid and no artist has signed. Priority
+order is therefore:
+
+> **proof of demand → shareable surface → supply → tooling → polish**
 
 If an item doesn't move one of those, it's maintenance. Maintenance is allowed — never
 ahead of growth. A shift that ships a real piece of the per-artist-pages epic beats three

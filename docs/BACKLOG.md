@@ -9,20 +9,33 @@ an unmerged PR. If you add an item, write it so a stranger could do it.
 
 ---
 
-## 🎯 WHAT "GROWTH" MEANS HERE
+## 🎯 THE MODEL — read this before prioritising anything
 
-Issue 01 is finished and live. Polishing it further has sharply diminishing returns.
+**The auction is the product. The magazine is how we get supply. Culture is what the
+take-rate pays for later.**
 
-The strategy is: **build the audience before taking a single client.** That needs things to
-distribute. Right now the entire publication is **one URL** — sixty artists and you cannot
-share any single one of them. Fixing that multiplies the shareable surface by sixty.
+The business is a marketplace: one-of-one objects and one-on-one time from artists nobody
+else brokers, with a small percentage on each transaction. That inverts the old problem —
+we are not charging artists who have no money, we are taking a cut of money fans already
+want to spend.
 
-Priority order: **shareable surface → content volume → tooling → polish.**
+Three parts, and do not confuse their roles:
 
-If an item doesn't move one of those, it's maintenance. Maintenance is allowed, never ahead
-of growth.
+| Part | Role | Not |
+|---|---|---|
+| **The store** | The product and the front door. The reason anyone arrives | A second half |
+| **The editorial** | How artists come to trust us enough to list. **Supply acquisition** | A side project |
+| **Live work, films, commissions** | What the take-rate funds once it exists | Something to start now |
 
----
+**The bottleneck right now is proof of demand.** No artists are signed and the catalogue is
+140 invented lots. Asking an artist to hand over a one-of-one object is a big ask with
+nothing to show. So the order is:
+
+> **prove demand -> recruit supply with that evidence -> hand-run one real auction -> build the platform**
+
+Do not build payments, accounts or escrow before someone has proved they want to bid. And be
+honest about the limit: measuring interest in fictional lots is *directional*, not proof. It
+is still far more than we have now.
 
 ## 🔒 BLOCKED ON OWNER
 
@@ -37,7 +50,36 @@ of growth.
 
 # 🅰 LANE A — PRODUCT & ENGINEERING  *(local, 08:10)*
 
-## EPIC A1 — Per-artist pages · **the flagship, do this first**
+## EPIC A5 — Prove the demand · **the new flagship**
+
+Cheap, fast, and it produces the one asset we do not have: evidence that people want to bid.
+That evidence is what turns a cold email to an artist into a credible offer.
+
+### A5.1 — Instrument the store
+Fire analytics events for the things that reveal intent: lot viewed, watchlist added, bid
+attempted, category browsed, "closing soon" opened. The output we want is a ranking — **which
+lots and which categories people actually want**, and where the bidding stops.
+**Verify:** trigger each event by hand in a browser and confirm it lands.
+
+### A5.2 — "Tell me when this is real"
+One honest capture on lot pages and the store front. The prototype banner stays and the copy
+says plainly that the lot is invented and this records interest, not a bid.
+**Needs a decision from the owner:** this is the first thing on the site that stores data
+off-device. Pick the smallest option — a hosted form endpoint, not a backend.
+**Never pre-tick consent, never imply a purchase.**
+
+### A5.3 — Make the store the front door
+The IA still treats the store as "the other half". Invert it. The magazine becomes the
+argument that earns trust; the auction is what people arrive for.
+**Verify:** REQUIRES A BROWSER. Walk the path a first-time visitor actually takes.
+
+### A5.4 — Bridge artist pages to their shop
+Every artist page links to that artist's shop, and every shop back to the artist's entry.
+This is the join between supply story and product, and both halves already exist.
+
+---
+
+## EPIC A1 — Per-artist pages · *(A1.1 and A1.2 shipped)*
 
 Sixty artists share one URL. This turns the publication into **61 shareable things**, each
 with its own social card. Highest-leverage item in the project; the whole distribution
@@ -150,6 +192,12 @@ Issue 01 is closed; Issue 02 needs a longlist. Each shift add 3–5 candidates t
 `docs/issue-02/longlist.md`: artist, release, label, city, why they fit, link. Prefer the
 genuinely under-covered over the obvious. Draw on `docs/research/`.
 **This is the content pipeline. It should never be empty.**
+
+### B4b — The artist pitch · **blocked until A5 has data**
+Once demand numbers exist, write what we send artists: what the store is, what it asks of
+them, what they get, what the cut is, and the real interest figures. Honest and short. Do
+not draft it before there are numbers — the numbers are the entire argument.
+**Never contact anyone.** Lane B writes it; the owner sends it.
 
 ### B5 — Enrich the existing sixty
 Several entries have blank origins, left blank rather than guessed — the colophon says so,
