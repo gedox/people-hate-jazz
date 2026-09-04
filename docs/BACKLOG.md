@@ -115,6 +115,23 @@ noise. Pillow does it in three lines but is a Python dependency in a Node genera
 palette encoder on `node:zlib` avoids that. **Do not** reduce the grain to save bytes —
 it is the same plate as the site and Lane C owns it.
 
+### A7 — Bump `?v=` to 11 on the next reader-visible asset change
+*Added by Lane B, 2026-09-04, while verifying B1. Deliberately NOT done in that PR.*
+
+B1 changed `assets/js/tracklist.js` (added a `d` duration field) without bumping `?v=10`.
+That was a judgement call, and the owner may want to overrule it:
+
+- **Why not bumped:** `d` is data nothing renders — `app.js` reads only `n`, `t`, `a`.
+  Verified in-browser that the new file produces byte-identical DOM. Bumping means editing
+  the `?v=` on every asset reference in **63 HTML files** — including all 60 under `a/**`,
+  which is **Lane A's territory and Lane B may not touch it**. A 63-file cross-lane diff
+  for an invisible field is exactly the unreviewable PR the standing orders warn against.
+- **The cost:** a returning reader with `tracklist.js?v=10` cached keeps the old copy. Today
+  that is harmless. It stops being harmless the moment anything *renders* a duration.
+
+**So:** whoever next changes a reader-visible asset bumps every file to `?v=11` together —
+which also picks this up. Do not bump only `index.html`; they must never drift apart.
+
 ### A4 — Swap in the real domain *(blocked)*
 Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.txt` and
 `sitemap.xml`, then re-render all social cards. Command in `docs/LANES.md`.
@@ -125,13 +142,12 @@ Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.t
 
 Owns words and data. Never touches CSS or layout.
 
-### B1 — Verify the masthead's own statistics · **do this first**
-`index.html` states as fact: 29 music videos, 16 live films, median track 3:09, 44 tracks
-under three minutes, five under ninety seconds. **Nobody has checked these against `data.js`
-and `tracklist.js`.** A magazine printing a wrong number about its own contents is the worst
-kind of error, and it's on the front page.
-**Do:** recompute every claim from the data. Fix whichever is wrong — prose or data,
-whichever the evidence supports. Report each claim confirmed or corrected.
+### B1 — Verify the masthead's own statistics · ✅ **DONE — 2026-09-04**
+All ten checked claims are **correct**; nothing needed correcting. But three of them
+(median 3:09, 44 under three minutes, five under ninety seconds) were not checkable from
+this repo at all — `tracklist.js` had no duration field. Durations for all 100 tracks are
+now committed as `d` (milliseconds, from Spotify's public embed payload), so the front
+page is auditable offline from here on. Full table in `PROGRESS.md`.
 
 ### B2 — Link-rot sweep on all 60 videos
 Videos get deleted, go private, get region-locked; a dead embed is invisible until a reader
@@ -150,6 +166,20 @@ Issue 01 is closed; Issue 02 needs a longlist. Each shift add 3–5 candidates t
 `docs/issue-02/longlist.md`: artist, release, label, city, why they fit, link. Prefer the
 genuinely under-covered over the obvious. Draw on `docs/research/`.
 **This is the content pipeline. It should never be empty.**
+
+### B6 — Decide the duplicate "Stronger"
+*Added by Lane B, 2026-09-04, while verifying B1.*
+
+The playlist has 100 rows but only 99 distinct recordings. Otis McDonald's *Stronger*
+appears twice — row 3 (`1aihLLEUnSYPptVj42wraV`) and row 57 (`0DMmuamiQ9tRdXfFLrEADn`):
+two different Spotify URIs, identical duration (183,829 ms), so it is the same recording
+issued on two releases rather than an alternate take.
+
+Nothing is *wrong* — `count:8` for Otis correctly counts playlist rows, `tracks[]`
+correctly lists 7 distinct titles, and the source playlist is reproduced faithfully, which
+is what the colophon promises. But an attentive reader who counts will find the seam.
+**Editorial call for the owner, not a bug to fix silently:** leave it and say nothing,
+or add one line to the colophon noting the playlist repeats a track.
 
 ### B5 — Enrich the existing sixty
 Several entries have blank origins, left blank rather than guessed — the colophon says so,
