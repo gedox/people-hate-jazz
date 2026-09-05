@@ -18,7 +18,21 @@ previous sessions. Everything you need is in this repo.
    already covers it. If it's done, mark it done in the backlog, say so in `PROGRESS.md`,
    and move to the next item — that alone is a worthwhile shift.
 7. Do the work. One item per shift unless they're trivially small.
-8. Open a PR. Update `PROGRESS.md`. Stop.
+8. Write your shift log at `docs/log/YYYY-MM-DD-lane-<x>.md`.
+9. **Run preflight. This is mandatory, not advisory:**
+
+   ```bash
+   node tools/shift/preflight.mjs --lane <a|b|c|d>
+   ```
+
+   It rebases you onto the newest `origin/main`, refuses if you touched another lane's
+   files or a single-writer file, and refuses if you forgot your log. **Do not push past
+   a failure** — it is telling you a conflict is about to happen.
+10. Open a PR. Stop.
+
+**Do not edit `PROGRESS.md` or `docs/BACKLOG.md` unless you are Lane D.** They are
+single-writer. Everyone else writes a dated log file, which cannot conflict. This rule
+exists because ignoring it blocked three PRs in one afternoon — see `docs/LANES.md`.
 
 ## What counts as a good shift
 
@@ -90,7 +104,9 @@ Regression baseline: `index.html` renders 60 roster cards and 100 tracklist rows
 - Social cards are generated, not drawn: edit `tools/og/card.html`, then re-render with
   headless Chrome (the command is in `docs/BACKLOG.md`).
 
-## End every shift by updating PROGRESS.md
+## End every shift by writing your log
 
-Keep it scannable in 30 seconds. Say what you did, what's next, and what you need from
-the owner. If you were blocked, say so plainly and say why.
+`docs/log/YYYY-MM-DD-lane-<x>.md`. What you did, what you found, what you propose for the
+backlog, what the owner needs to decide. Scannable in 30 seconds.
+
+Only Lane D writes `PROGRESS.md` and `docs/BACKLOG.md`, folding every log in at 21:10.
