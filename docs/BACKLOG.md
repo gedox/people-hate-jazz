@@ -11,6 +11,14 @@ an unmerged PR. If you add an item, write it so a stranger could do it.
 
 ## 🎯 THE MODEL — read this before prioritising anything
 
+**Superseded as of 2026-09-05 by `docs/MISSION.md`'s active mission, M1 — read that file
+first, always; this section is kept for context, not as the priority source.** The mission
+moved from "prove demand on a fictional catalogue first" to "build the real listing/bid
+mechanism now, with settlement arranged by hand until it's proven" — M1 explicitly still
+excludes payments, escrow and a legal entity, so the spirit of the caution below holds even
+though the sequencing changed. If this paragraph and `MISSION.md` ever disagree, `MISSION.md`
+wins; flag the conflict here for the next Lane D shift to reconcile.
+
 **The auction is the product. The magazine is how we get supply. Culture is what the
 take-rate pays for later.**
 
@@ -25,44 +33,101 @@ spend.
 | **The editorial** | How artists come to trust us enough to list. **Supply acquisition** | A side project |
 | **Live work, films** | What the take-rate funds once it exists | Something to start now |
 
-**The bottleneck is proof of demand.** No artists are signed and the catalogue is 140
-invented lots. So the order is:
-
-> **prove demand -> recruit supply with that evidence -> hand-run one real auction -> build the platform**
-
-Do not build payments, accounts or escrow before someone has proved they want to bid. And be
-honest about the limit: measuring interest in fictional lots is *directional*, not proof.
+Do not build payments or escrow before someone has proved they want to bid — M1 doesn't, and
+M4 (money) stays gated on M2/M3 producing real transactions first.
 
 ## 🔒 BLOCKED ON OWNER
 
 | Item | What's needed | Impact |
 |---|---|---|
-| **Domain** | Buy one, or confirm we stay on the `.vercel.app` alias | Every absolute URL and social card hardcodes the alias. Blocks Epic A1 finishing cleanly — 60 new pages would bake in the wrong origin |
-| **Repo visibility** | Public or private? | Public is free marketing for a publication |
-| **Analytics** | Yes / no / privacy-preserving | Footers promise "no tracking". Undecided means shipping blind |
-| **Signal Engine keys** | Reddit API creds + Anthropic API key + `voice.md` | Blocks A2 from finishing (fixture work can proceed) |
+| **Gate #1 — project email address** | Sign up for a sender identity (see research note below); a plain inbox is enough to start, a domain is a later upgrade | Blocks Identity (M1) actually delivering a one-time code, and blocks settlement notifications (M1.6) |
+| **Gate #2 — transactional email sender** | Pick a provider and add its API key to Vercel as `EMAIL_SENDER_API_KEY`. **Recommendation: Resend**, free tier 3,000/mo, simplest integration — full reasoning in [`docs/research/2026-09-05-gates-and-handover-trust.md`](research/2026-09-05-gates-and-handover-trust.md) | Same as above — `api/_lib/mailer.mjs` is built and waiting, just logs to the console today |
+| **Vercel env vars for the persistence adapter** | Set `GITHUB_TOKEN` (fine-grained PAT, Contents API only), `GITHUB_REPO`, `ADMIN_TOKEN` (any random string) in Vercel project settings | `api/_lib/github-store.mjs` (#21) has never run against the real GitHub API — this is what unblocks a live test, see **M1.2** |
+| **Domain** | Buy one, or confirm we stay on the `.vercel.app` alias | Every absolute URL and social card hardcodes the alias. **Deferred by the owner** as of the last check-in |
+| **PR #22 awaiting review** | Lane B's seller-pitch/target-list/lot-copy drafts (`docs/outreach/**`). Nothing sent, nothing posted — pure review, no urgency | Blocks nothing else; safe to leave queued |
+| *(paused, not mission-critical)* **Signal Engine keys** | Reddit API creds + Anthropic API key + `voice.md` | Not part of M1; revisit once M1 or M2 needs it |
 
 ---
 
 # 🅰 LANE A — PRODUCT & ENGINEERING  *(local, 08:10)*
 
+## EPIC M1 — A real listing, a real bid · ★ **THE ACTIVE MISSION — see `docs/MISSION.md`**
 
-## EPIC E1 — Prove the demand · ★ **FLAGSHIP, ahead of everything else in this lane**
+#21 shipped the whole server side (storage adapter, identity, session tokens, the four
+`/api` route groups) and #23 shipped a real seller-facing form (`sell.html`). **Neither is
+reachable by an actual stranger yet** — the store's bidding UI never calls the server, and
+`sell.html` has no link pointing at it. That gap, not more server code, is the critical
+path to the mission's own "done when": *a person who is not the owner can, in a browser,
+create a listing that persists on a server, and a different person can bid on it.*
 
-Cheap, fast, and it produces the one asset we do not have: evidence that people want to bid.
-That evidence is what turns a cold email to an artist into a credible offer.
+### M1.1 — Wire `assets/js/store.js` to the live API · **do this next, ahead of anything else in this lane**
+`store.js` still reads and writes every bid and lot purely to `localStorage` — #21's own
+commit message flagged this as the very next pickup, and it's still true three shifts
+later. `POST /api/lots/[id]/bids` already re-validates every bid server-side against
+`api/_lib/auction.mjs`; `GET/POST /api/lots` already exists. Wire the client to call them,
+falling back to local-only behaviour only when the API is unreachable (so the "static site,
+API optional" promise in `CLAUDE.md` still holds).
+**Verify:** REQUIRES A BROWSER against a real or locally-run API. Place a bid as one
+identity, refresh, confirm it persisted server-side; confirm a second identity sees the
+outbid state.
 
-### E1.1 — Instrument the store
+### M1.2 — Verify `github-store.mjs` against the live GitHub API
+Proven only against 41 unit tests on the in-memory contract it shares — the GitHub-specific
+plumbing has never made a real API call. Needs the Vercel env vars above set first, then one
+real create → read → write cycle against a scratch branch, before any real seller's
+submission goes through it.
+
+### M1.3 — Link `sell.html` from the store, and verify its round trip for real
+No link in `store.html`'s `.topnav` points at `sell.html` — a real artist can't find the
+listing form today. One line to add. Separately, its request-code → verify-code → submit
+flow has only been read, never run (the shift that built it had no server available) — run
+it for real once M1.2's env vars exist.
+**Verify:** REQUIRES A BROWSER.
+
+### M1.4 — `api/lots.mjs` silently drops the submitted `category` field
+`sell.html` sends `category` (needed to pick which deterministic plate art a lot gets, per
+`MISSION.md`'s no-faked-photography rule), but `validateSubmission` in `api/lots.mjs`
+doesn't read or store it. Add the field to the schema. Small, mechanical, self-contained.
+
+### M1.5 — A minimal reviewer page for approving submitted lots
+`POST /api/lots/[id]/approve` today means curl/Postman with `ADMIN_TOKEN` pasted in by hand.
+A static page listing pending lots with an approve button (POSTs the token from a form
+field) turns this into a workflow a non-developer reviewer could use.
+
+### M1.6 — Notify both parties at settlement, and persist the settlement record
+`POST /api/lots/[id]/settle` computes the right outcome but only returns it over HTTP —
+nobody is actually told. Blocked on gates #1/#2 above; build the notification call now
+behind the same adapter pattern `mailer.mjs` already uses, so it's a one-line swap once the
+keys land. Separately — and unblocked today — **write the settlement outcome to the store as
+its own document**, not just an HTTP response: see
+[`docs/research/2026-09-05-gates-and-handover-trust.md`](research/2026-09-05-gates-and-handover-trust.md)
+for why that's the one thing that makes a hand-arranged, no-escrow settlement disputable at
+all if something goes wrong later.
+
+### M1.7 — Extract the bid/outbid/won/lost views out of `store.js`'s template strings
+*Raised by Lane C, 2026-09-05.* Every screen a bidder sees lives as JS template strings
+inside `store.js` — unlike artist pages (A1.1 gave Lane C a real template), there is no
+static markup Lane C can design against. Needs either a lane exception or an extraction
+Lane A does first, before Lane C's trust-surface work on the lot page can proceed.
+
+---
+
+## EPIC E1 — Prove the demand · ⏸ **PAUSED — superseded by M1 as the active mission**
+
+Kept for later, not deleted: once M1 hand-runs its first real auction, measuring which real
+lots and categories draw bids becomes relevant again. **E1.2 in particular is now moot** —
+M1 builds the real capture mechanism (an actual bid), so a proxy "tell me when this is
+real" form is no longer the right shape of instrumentation. E1.3 and E1.4 are still-valid,
+low-priority IA improvements that don't block M1; pick either up only if a shift has
+nothing else queued.
+
+### E1.1 — Instrument the store *(paused)*
 Fire analytics events for what reveals intent: lot viewed, watchlist added, bid attempted,
-category browsed. The output we want is a ranking — **which lots and categories people
-actually want**, and where bidding stops. Depends on analytics existing (see BLOCKED).
-**Verify:** trigger each event by hand and confirm it lands.
+category browsed. Basic page-view analytics shipped in #16; this event-level layer did not.
+Revisit once M1 lots are real — instrumenting interest in the invented catalogue is no
+longer the priority.
 
-### E1.2 — "Tell me when this is real"
-One honest capture on lot pages and the store front. Prototype banner stays; copy says
-plainly the lot is invented and this records interest, not a bid.
-**Needs an owner decision:** first thing on the site storing data off-device. Smallest option
-— a hosted form endpoint, not a backend. **Never pre-tick consent, never imply a purchase.**
+### E1.2 — "Tell me when this is real" *(moot — see epic note above)*
 
 ### E1.3 — Make the store the front door
 The IA still treats the store as "the other half". Invert it.
@@ -71,7 +136,7 @@ The IA still treats the store as "the other half". Invert it.
 ### E1.4 — Bridge artist pages to their shop
 Every artist page links to that artist's shop and back. Both halves already exist.
 
-## EPIC A1 — Per-artist pages · **the flagship, do this first**
+## EPIC A1 — Per-artist pages · **A1.1/A1.2 done, A1.3/A1.4 open, not M1-blocking**
 
 Sixty artists share one URL. This turns the publication into **61 shareable things**, each
 with its own social card. Highest-leverage item in the project; the whole distribution
@@ -82,7 +147,7 @@ whose output is committed is fine; the OG cards already set that precedent.
 
 Shift-sized chunks, in order, one per shift.
 
-### A1.1 — The generator
+### A1.1 — The generator · ✅ **DONE — PR #7**
 Write `tools/artists/build.mjs`. Reads `ARTISTS[]` from `assets/js/data.js`, emits one static
 page per artist at `a/<slug>.html`. Template beside it. Reuse `main.css` + `store.css`;
 introduce no new design language — `.impeccable.md` still governs.
@@ -174,8 +239,19 @@ Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.t
 
 ---
 
-### A10 — Give the scheduled shifts a way to run a server · **blocks Lane C entirely**
-*Added by Lane C, 2026-09-05, after failing to render a single page.*
+### A10 — Give the scheduled shifts a way to run a server · **worked around, not fixed**
+*Added by Lane C, 2026-09-05, after failing to render a single page. Update, same day,
+second Lane C shift: found a workaround — `assets/js/` has no `fetch`/XHR, so `file://`
+loads real CSS/JS with no server at all, and headless Chrome from Bash (already sanctioned
+for the OG-card renders) can drive it. Static pages are now verifiable in scheduled runs.
+This does not fix the underlying blocker below — it just means Lane C isn't stuck on it
+until (or unless) a page starts needing a real server (e.g. after **M1.1** wires `store.js`
+to `/api`, which the file:// trick cannot reach). New backlog item to add then: put the
+audit-probe harness in `tools/` (Lane A's territory) so it's a committed script, not
+re-derived per shift — filed as follow-up whenever a Lane A shift has room for it.*
+
+Lane C exists because design work can only be verified in a browser. When the shift runs
+unattended on a schedule it cannot get one:
 
 Lane C exists because design work can only be verified in a browser. When the shift runs
 unattended on a schedule it cannot get one:
@@ -190,7 +266,7 @@ unattended on a schedule it cannot get one:
 So every scheduled Lane C shift is a no-op until this is fixed. Options, cheapest first:
 **(a)** run Lane C attended rather than scheduled; **(b)** keep a server up and add an
 attach-only entry to `.claude/launch.json` (`url` + no command) that the sandbox will
-accept; **(c)** settle the contradiction in **A7b** and let the shift start its own.
+accept; **(c)** settle the contradiction in **A10b** and let the shift start its own.
 **Verify:** run the scheduled shift and confirm it renders `index.html` with 60 cards.
 
 ### A10b — Settle the "never run a server with Bash" contradiction
@@ -280,12 +356,17 @@ PR. Leave anything unconfirmable blank.
 Owns how it looks. Load `/frontend-design` before UI work; finish with `/critique`,
 `/audit`, `/polish`.
 
-### C1 — Mobile and accessibility pass · **do this first**
+### C1 — Mobile and accessibility pass · ✅ **DONE — PR #18, browser-verified**
 Neither page has been checked below desktop width; no a11y audit has run. Most readers
 arrive from a phone link. Check 375 / 768 / 1440. Verify: roster grid reflows, store
 catalogue usable one-handed, tap targets ≥44px, focus rings visible on the newsprint ground,
 `prefers-reduced-motion` genuinely suppresses the reveal animations, body never scrolls
 horizontally.
+*All 12 findings in the static audit held up under real Chrome. Eight were Lane C's to fix
+and are fixed (toolbar offset, sticky-toolbar viewport eating, roster search focus ring,
+contrast, top-nav focus clipping, tap targets, `--topbar-h`). Four were Lane A's — see C7,
+C8/C9/C10/C11 below and A11/A12. `prefers-reduced-motion` and horizontal-overflow checks
+both came back clean.*
 
 ### C2 — Drop `store.css` from `404.html`
 It loads both stylesheets — a workaround from PR #1, before `.modeswitch`/`.btn` moved into
@@ -309,8 +390,9 @@ polish pass — this is the page most new readers will land on.
 
 ---
 
-### C6 — Take the live region off the store's view container
-*Added by Lane C, 2026-09-05. Detail: finding 5 in the audit.*
+### C6 — Take the live region off the store's view container · **still open**
+*Added by Lane C, 2026-09-05. Detail: finding 5 in the audit. Not part of PR #18's fix
+list — confirmed present, not yet fixed.*
 
 `store.html:67` is `<div id="view" aria-live="polite">`. The whole SPA view is a live
 region, and `store.js` rewrites 24 lot countdowns inside it **every second** — so a screen
@@ -319,23 +401,25 @@ catalogue on every hash route change.
 
 **Do:** delete `aria-live="polite"` from `#view`, and add a visually-hidden
 `<p class="sr" role="status">` for route announcements. `store.css:423` already has the
-`.sr` helper. Pairs with **A9**, which writes to it; ship C6 first — removing the live
+`.sr` helper. Pairs with **A12**, which writes to it; ship C6 first — removing the live
 region is an improvement on its own.
 **Verify:** REQUIRES A BROWSER, and ideally a screen reader.
 
-### C7 — Give the search box and the sort control a focus ring
+### C7 — Give the search box and the sort control a focus ring · **half done**
 *Added by Lane C, 2026-09-05. Detail: findings 3 and 4.*
 
 `main.css:516` kills the outline on the roster search input and nothing replaces it —
 tab to it and there is no focus indicator at all. WCAG 2.4.7 failure, on the magazine's
 only form control. `store.css:278` already solves the identical problem for the bid field
-with `:focus-within`; copy it to `.search`.
+with `:focus-within`; copy it to `.search`. **✅ Done in PR #18** (`.search:focus-within`
+now solid 3px, confirmed `visible: true`).
 
 The store's sort `<select>` has the same hole, from an inline `outline:none` in
-`store.js:336`. Lane C's half is a class in `store.css`; **A8** is Lane A's half.
+`store.js:336`. **Still open** — that half is Lane A's, tracked as **A11** below (Lane C
+already supplied the class in `store.css`; A11 is just dropping the inline attribute).
 **Verify:** REQUIRES A BROWSER. Tab through both toolbars.
 
-### C8 — Contrast: `--ink-faint` on hover, and the chip border
+### C8 — Contrast: `--ink-faint` on hover, and the chip border · ✅ **DONE — PR #18**
 *Added by Lane C, 2026-09-05. Detail: findings 8 and 9, with the arithmetic.*
 
 Two computed AA failures. `--ink-faint` on the `--wash` hover background is 4.21:1 light /
@@ -343,11 +427,33 @@ Two computed AA failures. `--ink-faint` on the `--wash` hover background is 4.21
 the metadata on every lot card, dropping below AA the moment you hover it. And unpressed
 `.chip` borders are `--rule-hard`, which is **2.04:1** in the light theme (needs 3:1);
 dark passes at 3.13, which is why nobody caught it.
+*Fixed and measured: `--ink-faint` now 4.68 light / 4.70 dark; chip border now 3.55 via a
+new `--chip-edge` token, light theme (dark was already fine at 3.13). Don't raise
+`--rule-hard` globally — that was deliberately avoided.*
 
-Candidate values are in the audit. **Both touch the whole newsprint palette — look at them
-before shipping.** `.impeccable.md` asks for quiet colour and these make it slightly louder;
-that is a design call, not a lint fix. Don't raise `--rule-hard` globally to fix the chip.
-**Verify:** REQUIRES A BROWSER, at 375 and 1440, both themes.
+### C9 — The store's sticky prototype banner covers its own toolbar on desktop
+*Added by Lane C, 2026-09-05, second shift. Measured: the banner and toolbar both pin at
+49.6px and the banner wins the stack (z250 vs z200) — hides 34.1px of a 94.6px toolbar at
+1440 (36%) and 73.6px of 163.9px at 768 (45%). The ≤760px fix in C1/PR #18 already lets the
+banner scroll away on mobile; desktop still has it pinned.*
+
+**Owner's call, not Lane C's to make unilaterally:** the standing orders say don't touch the
+prototype banner's persistence without you. The clean fix — let it scroll away above 760px
+too, exactly as it already does below — reduces how persistently it's shown. A hard-coded
+offset isn't an option (the banner's height varies by width because its text wraps).
+**Verify:** REQUIRES A BROWSER, 768 and 1440, once a decision is made.
+
+### C10 — `@media (pointer: coarse)` misses touch-screen laptops
+*Added by Lane C, 2026-09-05, second shift.* Touch-screen laptops report `pointer: fine`,
+so any tap-target rule gated on `(pointer: coarse)` skips them. Confirmed at 375px in a
+non-coarse context: `.chip` 29.1px, `.search` 30.2px, `.topnav a` 39px, `.theme-toggle` 40px
+— all under the 44px floor C1 otherwise fixed. Switch the gate to `(hover: none)`, or drop
+the media condition and apply the floor unconditionally.
+
+### C11 — `.crumbs a` is the store's only way back up from a lot, and it's ~17px
+*Added by Lane C, 2026-09-05, second shift.* Not fixed yet — deliberately: it only exists on
+the lot/shop routes, which need hash navigation to reach, and wasn't measured this shift.
+Needs a browser pass on those specific routes before sizing it.
 
 # 🅳 LANE D — RESEARCH & GROOMING  *(cloud, 21:10)*
 
