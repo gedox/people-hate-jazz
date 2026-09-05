@@ -40,10 +40,10 @@ function fail(msg) {
 
 // Exclusive: only this lane may touch these.
 const OWNED = {
-  a: [/^tools\/(?!og\/)/, /^a\//, /^assets\/js\/(app|store|lots)\.js$/, /^sitemap\.xml$/, /^vercel\.json$/, /^robots\.txt$/],
+  a: [/^tools\/(?!og\/|shift\/)/, /^a\//, /^assets\/js\/(app|store|lots)\.js$/, /^sitemap\.xml$/, /^vercel\.json$/, /^robots\.txt$/],
   b: [/^assets\/js\/(data|tracklist)\.js$/, /^docs\/issue-02\//],
   c: [/^assets\/css\//, /^404\.html$/, /^tools\/og\//],
-  d: [/^docs\/research\//],
+  d: [/^docs\/research\//, /^tools\/shift\//],  // Lane D owns the process tooling
 };
 
 // Shared: any lane may touch, because a rebase merges them cleanly in practice.
