@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>List a lot — THE STORE | People Hate Jazz</title>
+<meta name="description" content="Artists list one-of-one objects and time for auction. Verify with an email code, describe the lot, submit for review.">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,700;12..96,75..100,800&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/main.css?v=10">
+<link rel="stylesheet" href="assets/css/store.css?v=10">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2314110e'/%3E%3Ctext y='74' x='50' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='72' fill='%231b2ecc'%3ES%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<a class="skip" href="#content">Skip to the form</a>
+
+<!-- ── TOP BAR ─────────────────────────────────────────────────────── -->
+<div class="topbar">
+  <div class="shell topbar__in">
+    <a class="topbar__mark" href="index.html">PEOPLE HATE <b>JAZZ</b></a>
+    <div class="modeswitch">
+      <a href="index.html">Magazine</a>
+      <a href="store.html" class="is-store" aria-current="page">Store</a>
+    </div>
+    <nav class="topnav" aria-label="Store sections">
+      <a href="store.html#/">All lots</a>
+      <a href="store.html#/closing">Closing soon</a>
+      <a href="store.html#/shops">The 60 shops</a>
+      <a href="store.html#/mybids">My bids</a>
+      <a href="store.html#/how">How it works</a>
+    </nav>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+      <span id="theme-label">Dark</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── DEMO BANNER ─────────────────────────────────────────────────── -->
+<div class="demobar">
+  <div class="shell demobar__in">
+    <b>◆ Prototype</b>
+    <span>Lots you submit here go to a real review queue on a real server — but nothing is bought or sold yet, and no payment is ever collected on this page.</span>
+  </div>
+</div>
+
+<main id="content" tabindex="-1">
+  <div class="shell sellwrap">
+
+    <section class="sellhero">
+      <p class="sellhero__kicker">The Store &mdash; for artists</p>
+      <h1 class="sellhero__mark">List <span class="s2">something.</span></h1>
+      <p class="sellhero__deck">
+        One object, or one block of your time. Verify who you are, describe the lot
+        plainly, and it goes into <b>a queue a human reads before it ever goes live</b> &mdash;
+        it does not appear in the store the moment you hit submit.
+      </p>
+    </section>
+
+    <!-- ── TRUST STRIP ──────────────────────────────────────────────── -->
+    <ul class="trustrow" aria-label="What listing here does and does not do">
+      <li><b>Reviewed, not automatic.</b> A person checks every lot before it's live.</li>
+      <li><b>No payment collected here.</b> If it sells, you and the bidder settle directly.</li>
+      <li><b>No password.</b> A one-time code sent to your email is how we know it's you.</li>
+      <li><b>Nothing faked.</b> No photo? We generate a plate from the category &mdash; never a stock image.</li>
+    </ul>
+
+    <!-- ── STEPPER ──────────────────────────────────────────────────── -->
+    <ol class="stepper" id="stepper" aria-label="Listing progress">
+      <li data-step="1" aria-current="step">1. Verify email</li>
+      <li data-step="2">2. Describe the lot</li>
+      <li data-step="3">3. Submitted</li>
+    </ol>
+
+    <!-- ── STEP 1 — IDENTITY ───────────────────────────────────────── -->
+    <section class="sellcard" id="step-1" data-active="true">
+      <h2 class="sellcard__h">Who's listing?</h2>
+      <p class="sellcard__p">
+        We email a six-digit code to attribute this lot to you and let you come back to it
+        later. Nothing is stored except the address and the code's expiry.
+      </p>
+
+      <form id="form-email" novalidate>
+        <div class="fieldrow">
+          <label class="fieldlabel" for="email">Email</label>
+          <input class="textinput" type="email" id="email" name="email" autocomplete="email" required placeholder="you@example.com">
+        </div>
+        <div class="sellcard__acts">
+          <button class="btn" type="submit" id="btn-send-code">Send me a code</button>
+        </div>
+      </form>
+
+      <form id="form-code" hidden novalidate>
+        <div class="fieldrow">
+          <label class="fieldlabel" for="code">6-digit code</label>
+          <input class="textinput" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" id="code" name="code" required placeholder="000000">
+        </div>
+        <div class="sellcard__acts">
+          <button class="btn" type="submit" id="btn-verify">Verify &amp; continue</button>
+          <button class="btn btn--ghost" type="button" id="btn-resend">Use a different email</button>
+        </div>
+      </form>
+
+      <p class="sellmsg" id="msg-1" role="status" hidden></p>
+    </section>
+
+    <!-- ── STEP 2 — THE LOT ────────────────────────────────────────── -->
+    <section class="sellcard" id="step-2" hidden>
+      <h2 class="sellcard__h">What are you listing?</h2>
+      <p class="sellcard__p">
+        Write it the way you'd tell a friend what it is and why it's real. Vague copy gets
+        sent back by the reviewer &mdash; specific copy is what makes a stranger trust a bid.
+      </p>
+
+      <form id="form-lot" novalidate>
+        <div class="fieldrow">
+          <label class="fieldlabel" for="title">Title</label>
+          <input class="textinput" type="text" id="title" name="title" required maxlength="80" placeholder="e.g. Test pressing — the 'Admas' single, uncut">
+        </div>
+
+        <div class="fieldrow">
+          <label class="fieldlabel" for="description">Description</label>
+          <textarea class="textinput textinput--area" id="description" name="description" required maxlength="900" rows="5" placeholder="What it is, where it's been, and why it's the only one."></textarea>
+        </div>
+
+        <div class="fieldgrid">
+          <div class="fieldrow">
+            <label class="fieldlabel" for="category">Category</label>
+            <select class="textinput" id="category" name="category" required>
+              <option value="" disabled selected>Choose one</option>
+              <option value="vinyl">Vinyl &amp; acetate</option>
+              <option value="paper">Paper &amp; charts</option>
+              <option value="gear">Instruments &amp; gear</option>
+              <option value="tape">Tape &amp; session</option>
+              <option value="photo">Photography</option>
+              <option value="wearable">Worn &amp; carried</option>
+              <option value="session">One-on-one time</option>
+            </select>
+          </div>
+          <div class="fieldrow">
+            <label class="fieldlabel" for="condition">Condition</label>
+            <input class="textinput" type="text" id="condition" name="condition" required maxlength="40" placeholder="e.g. Very good, played">
+          </div>
+        </div>
+
+        <div class="fieldgrid">
+          <div class="fieldrow">
+            <label class="fieldlabel" for="startPrice">Opening bid (USD)</label>
+            <div class="bidfield">
+              <span>$</span>
+              <input type="number" id="startPrice" name="startPrice" min="1" step="1" required placeholder="500">
+            </div>
+          </div>
+          <div class="fieldrow">
+            <label class="fieldlabel" for="reserve">Reserve (optional)</label>
+            <div class="bidfield">
+              <span>$</span>
+              <input type="number" id="reserve" name="reserve" min="1" step="1" placeholder="No reserve">
+            </div>
+            <p class="fieldhint">The lowest price you'll accept. Leave blank to sell to the top bid, whatever it is.</p>
+          </div>
+        </div>
+
+        <div class="fieldrow">
+          <p class="fieldlabel">Photo</p>
+          <p class="fieldhint">
+            No upload here on purpose &mdash; this prototype never presents a fake product
+            photo. Every lot renders a generated two-ink plate keyed to its category instead.
+            A photo field arrives once the queue is real.
+          </p>
+        </div>
+
+        <div class="sellcard__acts">
+          <button class="btn" type="submit" id="btn-submit-lot">Submit for review</button>
+          <button class="btn btn--ghost" type="button" id="btn-back-1">Back</button>
+        </div>
+      </form>
+
+      <p class="sellmsg" id="msg-2" role="status" hidden></p>
+    </section>
+
+    <!-- ── STEP 3 — CONFIRMATION ───────────────────────────────────── -->
+    <section class="sellcard sellcard--done" id="step-3" hidden>
+      <h2 class="sellcard__h">It's in the queue.</h2>
+      <p class="sellcard__p">
+        Your lot is <b>pending</b>, not live. A reviewer reads it, sets a close date, and
+        either approves it into the catalogue or sends it back with a note. Nobody can bid
+        on it until that happens.
+      </p>
+      <dl class="spec sellrecap" id="sellrecap"></dl>
+      <div class="sellcard__acts">
+        <a class="btn" href="store.html#/">Back to the store</a>
+        <button class="btn btn--ghost" type="button" id="btn-list-another">List another</button>
+      </div>
+    </section>
+
+    <!-- ── TRUST / SETTLEMENT DETAIL ───────────────────────────────── -->
+    <section class="sellfaq" aria-labelledby="sellfaq-h">
+      <h2 id="sellfaq-h" class="sellfaq__h">If it sells</h2>
+      <div class="sellfaq__grid">
+        <div>
+          <h3>How settlement works</h3>
+          <p>
+            At close, the highest bid wins and both of you get the other's contact
+            details by email. <b>You arrange payment and shipping directly</b> &mdash; this
+            site takes no cut and holds no money, because it isn't a company yet.
+          </p>
+        </div>
+        <div>
+          <h3>If it goes wrong</h3>
+          <p>
+            There's no escrow and no chargeback here &mdash; that's the honest trade for
+            there being no fee. If a buyer disappears, tell us; a lot with a
+            non-paying winner is remade available rather than left in limbo. This
+            is early, and it says so everywhere on purpose.
+          </p>
+        </div>
+        <div>
+          <h3>Who sees your email</h3>
+          <p>
+            Nobody, until a lot actually closes with a winner. It's never shown on the
+            listing, never sold, never used for anything but the one code above and,
+            if you win or sell, one introduction.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ── COLOPHON ────────────────────────────────────────────────────── -->
+<footer class="colophon shell">
+  <div class="colophon__grid">
+    <div>
+      <h4>The Store</h4>
+      <p>
+        The other half of this publication. Sixty artists from the survey, each with
+        a private shop, each selling things that only exist once.
+      </p>
+    </div>
+    <div>
+      <h4>Status</h4>
+      <p>
+        This form posts to a real review queue on a real server. The rest of the
+        catalogue is still invented. Nothing here is a live marketplace yet.
+      </p>
+    </div>
+    <div>
+      <h4>Questions</h4>
+      <p class="storefoot-note">
+        This is a prototype run by one person. There's no support inbox yet &mdash;
+        if your code never arrives, the project doesn't have a live email sender
+        connected. Try again later.
+      </p>
+    </div>
+  </div>
+  <div class="bigmark" aria-hidden="true">The Store</div>
+  <div class="colophon__end">
+    <span>Issue 01</span>
+    <span><a href="index.html">Back to the magazine &#8599;</a></span>
+    <span style="margin-left:auto;color:var(--ultra)">◆ One of one</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var THEME_KEY = "phj-theme";
+  try {
+    var saved = localStorage.getItem(THEME_KEY);
+    if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
+  } catch (e) {}
+  var toggle = document.getElementById("theme-toggle");
+  var label = document.getElementById("theme-label");
+  function syncToggle() {
+    var dark = document.documentElement.getAttribute("data-theme") === "dark";
+    toggle.setAttribute("aria-pressed", String(dark));
+    label.textContent = dark ? "Light" : "Dark";
+  }
+  syncToggle();
+  toggle.addEventListener("click", function () {
+    var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    syncToggle();
+  });
+
+  // ── seller flow — talks to the real /api endpoints, no localStorage fiction ──
+  var state = { email: "", token: "", accountId: "" };
+  var stepper = document.getElementById("stepper");
+
+  function setStep(n) {
+    [1, 2, 3].forEach(function (i) {
+      document.getElementById("step-" + i).hidden = i !== n;
+    });
+    Array.prototype.forEach.call(stepper.children, function (li) {
+      var on = Number(li.getAttribute("data-step")) === n;
+      if (on) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
+    });
+  }
+
+  function showMsg(id, text, tone) {
+    var el = document.getElementById(id);
+    el.hidden = false;
+    el.textContent = text;
+    el.setAttribute("data-tone", tone || "good");
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  async function postJSON(url, body, token) {
+    var headers = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = "Bearer " + token;
+    var res = await fetch(url, { method: "POST", headers: headers, body: JSON.stringify(body) });
+    var data = null;
+    try { data = await res.json(); } catch (e) {}
+    return { ok: res.ok, status: res.status, data: data };
+  }
+
+  var formEmail = document.getElementById("form-email");
+  var formCode = document.getElementById("form-code");
+  var formLot = document.getElementById("form-lot");
+
+  formEmail.addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    var email = document.getElementById("email").value.trim();
+    if (!email) return;
+    var btn = document.getElementById("btn-send-code");
+    btn.disabled = true; btn.textContent = "Sending…";
+    var r = await postJSON("/api/auth/request-code", { email: email }).catch(function () { return { ok: false }; });
+    btn.disabled = false; btn.textContent = "Send me a code";
+    if (!r.ok) {
+      showMsg("msg-1", "Couldn't reach the server. If you're viewing this file directly (not through the deployed site), the API isn't running here — that's expected.", "bad");
+      return;
+    }
+    state.email = email;
+    formEmail.hidden = true;
+    formCode.hidden = false;
+    document.getElementById("code").focus();
+    showMsg("msg-1", "If that address is deliverable, a code is on its way to " + email + ".", "good");
+  });
+
+  document.getElementById("btn-resend").addEventListener("click", function () {
+    formCode.hidden = true;
+    formEmail.hidden = false;
+    document.getElementById("msg-1").hidden = true;
+    document.getElementById("email").focus();
+  });
+
+  formCode.addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    var code = document.getElementById("code").value.trim();
+    if (!code) return;
+    var btn = document.getElementById("btn-verify");
+    btn.disabled = true; btn.textContent = "Verifying…";
+    var r = await postJSON("/api/auth/verify-code", { email: state.email, code: code }).catch(function () { return { ok: false }; });
+    btn.disabled = false; btn.textContent = "Verify & continue";
+    if (!r.ok || !r.data || !r.data.token) {
+      showMsg("msg-1", "That code didn't check out. Codes expire — try sending a new one.", "bad");
+      return;
+    }
+    state.token = r.data.token;
+    state.accountId = r.data.accountId;
+    setStep(2);
+  });
+
+  document.getElementById("btn-back-1").addEventListener("click", function () { setStep(1); });
+
+  formLot.addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    var title = document.getElementById("title").value.trim();
+    var description = document.getElementById("description").value.trim();
+    var category = document.getElementById("category").value;
+    var condition = document.getElementById("condition").value.trim();
+    var startPrice = parseInt(document.getElementById("startPrice").value, 10);
+    var reserveRaw = document.getElementById("reserve").value.trim();
+    var reserve = reserveRaw ? parseInt(reserveRaw, 10) : null;
+
+    if (!title || !description || !category || !condition || !Number.isInteger(startPrice) || startPrice <= 0) {
+      showMsg("msg-2", "Fill in every field above — the reviewer needs all of it to approve a lot.", "bad");
+      return;
+    }
+    if (reserve != null && (!Number.isInteger(reserve) || reserve < startPrice)) {
+      showMsg("msg-2", "A reserve can't be lower than the opening bid.", "bad");
+      return;
+    }
+
+    var btn = document.getElementById("btn-submit-lot");
+    btn.disabled = true; btn.textContent = "Submitting…";
+    var r = await postJSON("/api/lots", {
+      title: title, description: description, category: category,
+      condition: condition, startPrice: startPrice, reserve: reserve
+    }, state.token).catch(function () { return { ok: false }; });
+    btn.disabled = false; btn.textContent = "Submit for review";
+
+    if (!r.ok) {
+      var detail = r.data && r.data.details ? " (" + r.data.details.join(", ") + ")" : "";
+      showMsg("msg-2", "The server didn't accept that lot" + detail + ". Nothing was lost — fix it above and resubmit.", "bad");
+      return;
+    }
+
+    document.getElementById("sellrecap").innerHTML =
+      '<div><dt>Title</dt><dd>' + esc(title) + '</dd></div>' +
+      '<div><dt>Category</dt><dd>' + esc(category) + '</dd></div>' +
+      '<div><dt>Opening bid</dt><dd>$' + startPrice.toLocaleString("en-US") + '</dd></div>' +
+      '<div><dt>Status</dt><dd>Pending review</dd></div>';
+    setStep(3);
+  });
+
+  document.getElementById("btn-list-another").addEventListener("click", function () {
+    formLot.reset();
+    document.getElementById("msg-2").hidden = true;
+    setStep(2);
+  });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
