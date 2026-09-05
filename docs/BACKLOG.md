@@ -115,6 +115,57 @@ noise. Pillow does it in three lines but is a Python dependency in a Node genera
 palette encoder on `node:zlib` avoids that. **Do not** reduce the grain to save bytes —
 it is the same plate as the site and Lane C owns it.
 
+### A7 — Give the scheduled shifts a way to run a server · **blocks Lane C entirely**
+*Added by Lane C, 2026-09-05, after failing to render a single page.*
+
+Lane C exists because design work can only be verified in a browser. When the shift runs
+unattended on a schedule it cannot get one:
+
+- `preview_start` with the `phj` config is **refused** in scheduled-task runs — "nobody is
+  present to approve the command".
+- The in-app browser renders local `file://` pages as static `data:` snapshots. Relative
+  CSS and JS never load, so it shows 0 roster cards, and page tools then refuse the tab.
+- The Chrome extension's `navigate` prepends `https://` to a `file://` URL.
+- Production is behind Vercel deployment protection and redirects to a login.
+
+So every scheduled Lane C shift is a no-op until this is fixed. Options, cheapest first:
+**(a)** run Lane C attended rather than scheduled; **(b)** keep a server up and add an
+attach-only entry to `.claude/launch.json` (`url` + no command) that the sandbox will
+accept; **(c)** settle the contradiction in **A7b** and let the shift start its own.
+**Verify:** run the scheduled shift and confirm it renders `index.html` with 60 cards.
+
+### A7b — Settle the "never run a server with Bash" contradiction
+`docs/LANES.md` (and the Lane C shift prompt) say **never run a server with Bash**.
+`CLAUDE.md`'s "Verify before you claim" section prescribes `python -m http.server 8412`
+in a bash block. A shift that reads both cannot obey both. Pick one and make the other
+match. Owner's call — it is a rule about how shifts are allowed to work.
+
+### A8 — Remove the inline `outline:none` from the store's sort control
+*Added by Lane C, 2026-09-05. Pairs with C7.*
+
+`store.js:336` builds `<select id="lsort" style="…;outline:none">`. Inline, so no
+stylesheet can restore the focus ring without `!important`, and the control has no visible
+focus state. Move the whole inline `style` to a class (Lane C supplies it in `store.css`)
+and drop the attribute. One line.
+
+### A9 — Focus and announcements on the store's routes
+*Added by Lane C, 2026-09-05. Detail: findings 5, 6 and 7 in the audit.*
+
+Three related defects in `assets/js/**`, all cheap:
+
+1. **Route changes throw focus away.** `store.js:787` scrolls to top but never moves focus;
+   the activated link is gone, so focus falls to `<body>` and a keyboard user restarts from
+   the top of the tab order on every navigation. Focus `#content` instead.
+2. **Four routes have no `<h1>` and never change the title.** `viewClosing`, `viewShops`,
+   `viewMyBids` and `viewHow` start at `<h2>`, and `document.title` is only rewritten for
+   `lot` and `shop`. Nothing tells assistive tech the page changed.
+3. **Playing a video destroys focus.** `app.js:153` — and the same block inlined in all 60
+   `a/*.html` pages — does `f.replaceWith(frame)`. Press Enter on **Play** and the focused
+   button ceases to exist. Focus the new `<iframe>`.
+
+Also write one short sentence into the `role="status"` node **C6** adds.
+**Verify:** REQUIRES A BROWSER. Tab-only walk of the store, then a route change.
+
 ### A4 — Swap in the real domain *(blocked)*
 Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.txt` and
 `sitemap.xml`, then re-render all social cards. Command in `docs/LANES.md`.
@@ -170,6 +221,14 @@ catalogue usable one-handed, tap targets ≥44px, focus rings visible on the new
 `prefers-reduced-motion` genuinely suppresses the reveal animations, body never scrolls
 horizontally.
 
+**Still open.** A static pass on 2026-09-05 found twelve issues and wrote them up with
+line numbers, arithmetic and proposed fixes in
+[`docs/audits/2026-09-05-lane-c-mobile-a11y.md`](audits/2026-09-05-lane-c-mobile-a11y.md).
+**Nothing was rendered and no CSS was changed** — that shift ran unattended and could not
+start a server (see **A7**). Read the audit first: with a browser, the headline items
+(sticky toolbar occlusion, the invisible search focus ring) are a short shift, not a long
+one. Do not ship any of it on the audit's word alone; it says so itself.
+
 ### C2 — Drop `store.css` from `404.html`
 It loads both stylesheets — a workaround from PR #1, before `.modeswitch`/`.btn` moved into
 `main.css`. Probably unnecessary now. Remove and see what breaks; anything that does is also
@@ -188,6 +247,46 @@ icon-only controls, meaningful link text, the search input's label. You have a b
 The generator ships a functional template; Lane C makes it good. A real design brief, not a
 polish pass — this is the page most new readers will land on.
 
+### C6 — Take the live region off the store's view container
+*Added by Lane C, 2026-09-05. Detail: finding 5 in the audit.*
+
+`store.html:67` is `<div id="view" aria-live="polite">`. The whole SPA view is a live
+region, and `store.js` rewrites 24 lot countdowns inside it **every second** — so a screen
+reader announces lot clocks roughly once a second, forever. It also re-reads the entire
+catalogue on every hash route change.
+
+**Do:** delete `aria-live="polite"` from `#view`, and add a visually-hidden
+`<p class="sr" role="status">` for route announcements. `store.css:423` already has the
+`.sr` helper. Pairs with **A9**, which writes to it; ship C6 first — removing the live
+region is an improvement on its own.
+**Verify:** REQUIRES A BROWSER, and ideally a screen reader.
+
+### C7 — Give the search box and the sort control a focus ring
+*Added by Lane C, 2026-09-05. Detail: findings 3 and 4.*
+
+`main.css:516` kills the outline on the roster search input and nothing replaces it —
+tab to it and there is no focus indicator at all. WCAG 2.4.7 failure, on the magazine's
+only form control. `store.css:278` already solves the identical problem for the bid field
+with `:focus-within`; copy it to `.search`.
+
+The store's sort `<select>` has the same hole, from an inline `outline:none` in
+`store.js:336`. Lane C's half is a class in `store.css`; **A8** is Lane A's half.
+**Verify:** REQUIRES A BROWSER. Tab through both toolbars.
+
+### C8 — Contrast: `--ink-faint` on hover, and the chip border
+*Added by Lane C, 2026-09-05. Detail: findings 8 and 9, with the arithmetic.*
+
+Two computed AA failures. `--ink-faint` on the `--wash` hover background is 4.21:1 light /
+4.29:1 dark (needs 4.5) — that is the artist line under every one of the 100 tracks, and
+the metadata on every lot card, dropping below AA the moment you hover it. And unpressed
+`.chip` borders are `--rule-hard`, which is **2.04:1** in the light theme (needs 3:1);
+dark passes at 3.13, which is why nobody caught it.
+
+Candidate values are in the audit. **Both touch the whole newsprint palette — look at them
+before shipping.** `.impeccable.md` asks for quiet colour and these make it slightly louder;
+that is a design call, not a lint fix. Don't raise `--rule-hard` globally to fix the chip.
+**Verify:** REQUIRES A BROWSER, at 375 and 1440, both themes.
+
 ---
 
 # 🅳 LANE D — RESEARCH & GROOMING  *(cloud, 21:10)*
@@ -197,6 +296,16 @@ Owns no code.
 ### D1 — Audit the handover
 Is `PROGRESS.md` true? Compare against open PRs, merged PRs, recent commits. Fix what's
 stale. It's the project's only memory between shifts.
+
+### D3 — Fix the horizontal-overflow check in the standing orders
+*Added by Lane C, 2026-09-05.*
+
+`CLAUDE.md` and `docs/LANES.md` both ask a shift to confirm "the body never scrolls
+horizontally". That check can never fail: `main.css:110` sets `body { overflow-x: hidden }`,
+so overflow is clipped, not prevented, and `body.scrollWidth` always equals the viewport.
+Replace it with `documentElement.scrollWidth > documentElement.clientWidth`, plus the
+bounding-rect sweep that names the offending element. Both snippets are at the end of
+[`docs/audits/2026-09-05-lane-c-mobile-a11y.md`](audits/2026-09-05-lane-c-mobile-a11y.md).
 
 ### D2 — One research note per shift
 Dated note in `docs/research/`. Rotate topics; check what's already covered. Feed findings
