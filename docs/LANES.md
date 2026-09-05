@@ -1,5 +1,9 @@
 # LANES
 
+**Lanes decide which files you may touch. They do not decide what you work on** — that is
+`docs/MISSION.md`. All four lanes work the same active mission from different angles.
+
+
 Four shifts a day run in parallel lanes. Lanes exist so shifts never collide: each owns a
 distinct part of the repo, and **may not touch another lane's files.**
 
