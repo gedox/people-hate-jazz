@@ -12,8 +12,47 @@ Your shift prompt tells you which lane you are. If it doesn't, stop and say so.
 | **C — Design & Visual** | 17:40 | Local | How it looks | `assets/css/**`, markup structure in any HTML, `tools/og/**` |
 | **D — Research & Grooming** | 21:10 | Cloud | Knowledge and the queue | `docs/research/**`, `docs/BACKLOG.md`, `PROGRESS.md` |
 
-**Everyone** may update `PROGRESS.md` — that's the handover, and it's append-friendly.
-Conflicts there are cheap; conflicts in code are not.
+## ⛔ THE SHARED-FILE RULE — this one caused an outage
+
+`PROGRESS.md` and `docs/BACKLOG.md` are **single-writer. Only Lane D edits them.**
+
+An earlier version of this file said everyone could update `PROGRESS.md` because "conflicts
+there are cheap." That was wrong and it broke the project: four shifts a day rewriting two
+shared files meant **every open PR conflicted with every other one**, and three piled up
+unmergeable in a single afternoon. There was no merge order that worked.
+
+**So: your shift writes exactly one new file.**
+
+```
+docs/log/YYYY-MM-DD-lane-<a|b|c|d>.md
+```
+
+New file, unique name, **cannot ever conflict.** Put in it: what you did, what you found,
+what you propose adding to the backlog, and anything the owner needs to decide.
+
+Lane D reads every log at 21:10 and folds them into `PROGRESS.md` and `docs/BACKLOG.md` —
+one writer, no conflicts. Worst case a discovery waits until that evening to be filed, which
+is a far smaller cost than a blocked merge queue.
+
+**Never edit `PROGRESS.md` or `docs/BACKLOG.md` unless you are Lane D.** Not even to tick an
+item done. Say it in your log instead.
+
+## Preflight — run it, every time
+
+```bash
+node tools/shift/preflight.mjs --lane <a|b|c|d>
+```
+
+Mandatory before pushing. It does three things that make conflicts structurally unlikely
+instead of merely discouraged:
+
+1. **Rebases onto the newest `origin/main`.** Most conflicts came from opening PRs against
+   a stale base while another shift had already moved on. This removes that entirely.
+2. **Refuses if you touched another lane's files**, or a single-writer file when you are not
+   Lane D.
+3. **Refuses if you did not write your log.**
+
+If it fails, it is telling you a conflict is coming. Fix the cause; do not push past it.
 
 ## Overlap rules
 

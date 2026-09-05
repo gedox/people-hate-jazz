@@ -9,20 +9,29 @@ an unmerged PR. If you add an item, write it so a stranger could do it.
 
 ---
 
-## 🎯 WHAT "GROWTH" MEANS HERE
+## 🎯 THE MODEL — read this before prioritising anything
 
-Issue 01 is finished and live. Polishing it further has sharply diminishing returns.
+**The auction is the product. The magazine is how we get supply. Culture is what the
+take-rate pays for later.**
 
-The strategy is: **build the audience before taking a single client.** That needs things to
-distribute. Right now the entire publication is **one URL** — sixty artists and you cannot
-share any single one of them. Fixing that multiplies the shareable surface by sixty.
+The business is a marketplace: one-of-one objects and one-on-one time from artists nobody
+else brokers, with a small percentage per transaction. That inverts the old problem — we are
+not charging artists who have no money, we are taking a cut of money fans already want to
+spend.
 
-Priority order: **shareable surface → content volume → tooling → polish.**
+| Part | Role | Not |
+|---|---|---|
+| **The store** | The product and the front door | A second half |
+| **The editorial** | How artists come to trust us enough to list. **Supply acquisition** | A side project |
+| **Live work, films** | What the take-rate funds once it exists | Something to start now |
 
-If an item doesn't move one of those, it's maintenance. Maintenance is allowed, never ahead
-of growth.
+**The bottleneck is proof of demand.** No artists are signed and the catalogue is 140
+invented lots. So the order is:
 
----
+> **prove demand -> recruit supply with that evidence -> hand-run one real auction -> build the platform**
+
+Do not build payments, accounts or escrow before someone has proved they want to bid. And be
+honest about the limit: measuring interest in fictional lots is *directional*, not proof.
 
 ## 🔒 BLOCKED ON OWNER
 
@@ -36,6 +45,31 @@ of growth.
 ---
 
 # 🅰 LANE A — PRODUCT & ENGINEERING  *(local, 08:10)*
+
+
+## EPIC E1 — Prove the demand · ★ **FLAGSHIP, ahead of everything else in this lane**
+
+Cheap, fast, and it produces the one asset we do not have: evidence that people want to bid.
+That evidence is what turns a cold email to an artist into a credible offer.
+
+### E1.1 — Instrument the store
+Fire analytics events for what reveals intent: lot viewed, watchlist added, bid attempted,
+category browsed. The output we want is a ranking — **which lots and categories people
+actually want**, and where bidding stops. Depends on analytics existing (see BLOCKED).
+**Verify:** trigger each event by hand and confirm it lands.
+
+### E1.2 — "Tell me when this is real"
+One honest capture on lot pages and the store front. Prototype banner stays; copy says
+plainly the lot is invented and this records interest, not a bid.
+**Needs an owner decision:** first thing on the site storing data off-device. Smallest option
+— a hosted form endpoint, not a backend. **Never pre-tick consent, never imply a purchase.**
+
+### E1.3 — Make the store the front door
+The IA still treats the store as "the other half". Invert it.
+**Verify:** REQUIRES A BROWSER.
+
+### E1.4 — Bridge artist pages to their shop
+Every artist page links to that artist's shop and back. Both halves already exist.
 
 ## EPIC A1 — Per-artist pages · **the flagship, do this first**
 
@@ -138,6 +172,59 @@ Update `ORIGIN` in the meta on every page (including the 60 new ones), `robots.t
 
 ---
 
+---
+
+### A10 — Give the scheduled shifts a way to run a server · **blocks Lane C entirely**
+*Added by Lane C, 2026-09-05, after failing to render a single page.*
+
+Lane C exists because design work can only be verified in a browser. When the shift runs
+unattended on a schedule it cannot get one:
+
+- `preview_start` with the `phj` config is **refused** in scheduled-task runs — "nobody is
+  present to approve the command".
+- The in-app browser renders local `file://` pages as static `data:` snapshots. Relative
+  CSS and JS never load, so it shows 0 roster cards, and page tools then refuse the tab.
+- The Chrome extension's `navigate` prepends `https://` to a `file://` URL.
+- Production is behind Vercel deployment protection and redirects to a login.
+
+So every scheduled Lane C shift is a no-op until this is fixed. Options, cheapest first:
+**(a)** run Lane C attended rather than scheduled; **(b)** keep a server up and add an
+attach-only entry to `.claude/launch.json` (`url` + no command) that the sandbox will
+accept; **(c)** settle the contradiction in **A7b** and let the shift start its own.
+**Verify:** run the scheduled shift and confirm it renders `index.html` with 60 cards.
+
+### A10b — Settle the "never run a server with Bash" contradiction
+`docs/LANES.md` (and the Lane C shift prompt) say **never run a server with Bash**.
+`CLAUDE.md`'s "Verify before you claim" section prescribes `python -m http.server 8412`
+in a bash block. A shift that reads both cannot obey both. Pick one and make the other
+match. Owner's call — it is a rule about how shifts are allowed to work.
+
+### A11 — Remove the inline `outline:none` from the store's sort control
+*Added by Lane C, 2026-09-05. Pairs with C7.*
+
+`store.js:336` builds `<select id="lsort" style="…;outline:none">`. Inline, so no
+stylesheet can restore the focus ring without `!important`, and the control has no visible
+focus state. Move the whole inline `style` to a class (Lane C supplies it in `store.css`)
+and drop the attribute. One line.
+
+### A12 — Focus and announcements on the store's routes
+*Added by Lane C, 2026-09-05. Detail: findings 5, 6 and 7 in the audit.*
+
+Three related defects in `assets/js/**`, all cheap:
+
+1. **Route changes throw focus away.** `store.js:787` scrolls to top but never moves focus;
+   the activated link is gone, so focus falls to `<body>` and a keyboard user restarts from
+   the top of the tab order on every navigation. Focus `#content` instead.
+2. **Four routes have no `<h1>` and never change the title.** `viewClosing`, `viewShops`,
+   `viewMyBids` and `viewHow` start at `<h2>`, and `document.title` is only rewritten for
+   `lot` and `shop`. Nothing tells assistive tech the page changed.
+3. **Playing a video destroys focus.** `app.js:153` — and the same block inlined in all 60
+   `a/*.html` pages — does `f.replaceWith(frame)`. Press Enter on **Play** and the focused
+   button ceases to exist. Focus the new `<iframe>`.
+
+Also write one short sentence into the `role="status"` node **C6** adds.
+**Verify:** REQUIRES A BROWSER. Tab-only walk of the store, then a route change.
+
 # 🅱 LANE B — EDITORIAL & CONTENT  *(local, 13:10)*
 
 Owns words and data. Never touches CSS or layout.
@@ -220,6 +307,48 @@ polish pass — this is the page most new readers will land on.
 
 ---
 
+---
+
+### C6 — Take the live region off the store's view container
+*Added by Lane C, 2026-09-05. Detail: finding 5 in the audit.*
+
+`store.html:67` is `<div id="view" aria-live="polite">`. The whole SPA view is a live
+region, and `store.js` rewrites 24 lot countdowns inside it **every second** — so a screen
+reader announces lot clocks roughly once a second, forever. It also re-reads the entire
+catalogue on every hash route change.
+
+**Do:** delete `aria-live="polite"` from `#view`, and add a visually-hidden
+`<p class="sr" role="status">` for route announcements. `store.css:423` already has the
+`.sr` helper. Pairs with **A9**, which writes to it; ship C6 first — removing the live
+region is an improvement on its own.
+**Verify:** REQUIRES A BROWSER, and ideally a screen reader.
+
+### C7 — Give the search box and the sort control a focus ring
+*Added by Lane C, 2026-09-05. Detail: findings 3 and 4.*
+
+`main.css:516` kills the outline on the roster search input and nothing replaces it —
+tab to it and there is no focus indicator at all. WCAG 2.4.7 failure, on the magazine's
+only form control. `store.css:278` already solves the identical problem for the bid field
+with `:focus-within`; copy it to `.search`.
+
+The store's sort `<select>` has the same hole, from an inline `outline:none` in
+`store.js:336`. Lane C's half is a class in `store.css`; **A8** is Lane A's half.
+**Verify:** REQUIRES A BROWSER. Tab through both toolbars.
+
+### C8 — Contrast: `--ink-faint` on hover, and the chip border
+*Added by Lane C, 2026-09-05. Detail: findings 8 and 9, with the arithmetic.*
+
+Two computed AA failures. `--ink-faint` on the `--wash` hover background is 4.21:1 light /
+4.29:1 dark (needs 4.5) — that is the artist line under every one of the 100 tracks, and
+the metadata on every lot card, dropping below AA the moment you hover it. And unpressed
+`.chip` borders are `--rule-hard`, which is **2.04:1** in the light theme (needs 3:1);
+dark passes at 3.13, which is why nobody caught it.
+
+Candidate values are in the audit. **Both touch the whole newsprint palette — look at them
+before shipping.** `.impeccable.md` asks for quiet colour and these make it slightly louder;
+that is a design call, not a lint fix. Don't raise `--rule-hard` globally to fix the chip.
+**Verify:** REQUIRES A BROWSER, at 375 and 1440, both themes.
+
 # 🅳 LANE D — RESEARCH & GROOMING  *(cloud, 21:10)*
 
 Owns no code.
@@ -235,6 +364,18 @@ into B4.
 - Where this could be seen — radio, blogs, newsletters, curators, forums. **Research only, contact nobody.**
 - Reference publications — how comparable magazines structure issues and archives
 - Technical/design opportunities, written up as proper backlog items
+
+---
+
+### D3 — Fix the horizontal-overflow check in the standing orders
+*Added by Lane C, 2026-09-05.*
+
+`CLAUDE.md` and `docs/LANES.md` both ask a shift to confirm "the body never scrolls
+horizontally". That check can never fail: `main.css:110` sets `body { overflow-x: hidden }`,
+so overflow is clipped, not prevented, and `body.scrollWidth` always equals the viewport.
+Replace it with `documentElement.scrollWidth > documentElement.clientWidth`, plus the
+bounding-rect sweep that names the offending element. Both snippets are at the end of
+[`docs/audits/2026-09-05-lane-c-mobile-a11y.md`](audits/2026-09-05-lane-c-mobile-a11y.md).
 
 ---
 
