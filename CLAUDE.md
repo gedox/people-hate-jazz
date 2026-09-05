@@ -5,21 +5,23 @@ previous sessions. Everything you need is in this repo.
 
 ## Start every shift like this
 
-1. Read **`docs/LANES.md`** — which lane you are, and which files you may touch. Shifts
+1. Read **`docs/MISSION.md`** — **the active mission. It decides what you work on.**
+   Not the backlog. If your idea doesn't advance the mission, it isn't this shift's work.
+2. Read **`docs/LANES.md`** — which lane you are, and which files you may touch. Shifts
    run in parallel lanes so they never collide. **Never edit another lane's files.**
-2. Read **`PROGRESS.md`** — current status, open PRs, what's blocked on the owner.
-3. Read **`docs/BACKLOG.md`** — the prioritized queue.
-4. Read **`.impeccable.md`** — design law. Non-optional before touching anything visual.
-5. Check open PRs: `gh pr list`. **If a PR is awaiting review, do not start work that
+3. Read **`PROGRESS.md`** — current status, open PRs, what's blocked on the owner.
+4. Read **`docs/BACKLOG.md`** — supporting detail, *not* the priority source — the prioritized queue.
+5. Read **`.impeccable.md`** — design law. Non-optional before touching anything visual.
+6. Check open PRs: `gh pr list`. **If a PR is awaiting review, do not start work that
    depends on it.** Pick the highest-priority item that doesn't conflict.
-6. **Confirm the item isn't already done.** The backlog goes stale: only the owner can
+7. **Confirm the work isn't already done.** The backlog goes stale: only the owner can
    merge, so a correction can sit unmerged while you read the old version. Before starting,
    check `git log --oneline -20` and `gh pr list --state merged --limit 10` for work that
    already covers it. If it's done, mark it done in the backlog, say so in `PROGRESS.md`,
    and move to the next item — that alone is a worthwhile shift.
-7. Do the work. One item per shift unless they're trivially small.
-8. Write your shift log at `docs/log/YYYY-MM-DD-lane-<x>.md`.
-9. **Run preflight. This is mandatory, not advisory:**
+8. Do the work. One mission workstream per shift unless they're trivially small.
+9. Write your shift log at `docs/log/YYYY-MM-DD-lane-<x>.md`.
+10. **Run preflight. This is mandatory, not advisory:**
 
    ```bash
    node tools/shift/preflight.mjs --lane <a|b|c|d>
@@ -28,7 +30,7 @@ previous sessions. Everything you need is in this repo.
    It rebases you onto the newest `origin/main`, refuses if you touched another lane's
    files or a single-writer file, and refuses if you forgot your log. **Do not push past
    a failure** — it is telling you a conflict is about to happen.
-10. Open a PR. Stop.
+11. Open a PR. Stop.
 
 **Do not edit `PROGRESS.md` or `docs/BACKLOG.md` unless you are Lane D.** They are
 single-writer. Everyone else writes a dated log file, which cannot conflict. This rule
@@ -36,18 +38,24 @@ exists because ignoring it blocked three PRs in one afternoon — see `docs/LANE
 
 ## What counts as a good shift
 
-**The auction is the product.** The magazine is how artists come to trust us enough to list;
-live work and films are what the take-rate funds later. Read the top of `docs/BACKLOG.md`
-before prioritising anything — it is the authority on the model.
+**Read `docs/MISSION.md`. Work the active mission. That is the whole instruction.**
 
-The bottleneck is that nobody has proved they want to bid and no artist has signed. Priority
-order is therefore:
+The point of this project is a marketplace where real artists list real things and real
+people bid on them. The magazine, the design and the tooling exist only to make that happen.
 
-> **proof of demand → shareable surface → supply → tooling → polish**
+Judge your shift against one question:
 
-If an item doesn't move one of those, it's maintenance. Maintenance is allowed — never
-ahead of growth. A shift that ships a real piece of the per-artist-pages epic beats three
-shifts of tidying.
+> **Did this get us closer to a stranger completing a transaction?**
+
+If the answer is no, it was a wasted shift no matter how clean the diff. Accessibility
+passes, file-size reductions, refactors and backlog grooming are **not** shift work unless
+the mission names them. They are how a project stays busy while going nowhere.
+
+**If you cannot advance the mission, write that in your log and stop.** Do not fall back to
+polishing. An honest empty shift tells the owner we are blocked; a tidy-up hides it.
+
+Where a human gate blocks you (see MISSION.md), **build right up to it** — the whole flow
+with the gated call stubbed behind an adapter — so it ships the moment the owner clears it.
 
 ## The owner's role
 
@@ -102,7 +110,14 @@ Regression baseline: `index.html` renders 60 roster cards and 100 tracklist rows
 
 ## Architecture notes
 
-- No build step, no framework, no runtime dependencies.
+- **The public site stays static** — no build step, no framework, no runtime dependencies.
+  That is why it deploys anywhere and why it is fast.
+- **Server code lives in `/api` as Vercel Functions.** M1 needs a server: listings and bids
+  cannot live in `localStorage` if two strangers are to transact. Plain `.mjs` handlers, node
+  stdlib only, no framework. The static pages keep working with the API switched off.
+- **Auction rules live in `api/_lib/auction.mjs` and are the authority.** The browser may
+  compute the same numbers to render a hint; it is never trusted. Money is whole-unit
+  integers, never floats. Tests: `node --test tools/test/auction.test.mjs`.
 - `assets/css/store.css` currently holds shared chrome (`.topbar`, `.modeswitch`,
   `.btn`) as well as store styles. Any page that uses the topbar must load **both**
   stylesheets until that's refactored. See the backlog.
