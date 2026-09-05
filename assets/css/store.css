@@ -434,3 +434,110 @@
 }
 .loadmore .btn { padding: .7rem 1.6rem; }
 .loadmore span { color: var(--ink-faint); }
+
+/* ── SELLER FLOW (sell.html) ─────────────────────────────────────────────
+   The listing form. Same chrome as the store — topbar, demobar, colophon —
+   but its own body: a form is not a catalogue, and forcing lotgrid/bidbox
+   classes onto it would fight their own layout assumptions at every step. */
+
+.sellwrap { padding-block: var(--s-5) var(--s-6); max-width: 46rem; }
+
+.sellhero__kicker {
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--ultra);
+}
+.sellhero__mark {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--t-5); line-height: .84;
+  letter-spacing: -.045em; text-transform: uppercase;
+  font-variation-settings: "wdth" 88; margin-top: .2rem;
+}
+.sellhero__mark .s2 { color: var(--ultra); }
+.sellhero__deck {
+  font-size: var(--t-1); line-height: 1.4; max-width: 52ch;
+  margin-top: var(--s-3); padding-top: var(--s-3);
+  border-top: 2px solid var(--ink); font-weight: 300;
+}
+.sellhero__deck b { font-weight: 600; }
+
+.trustrow {
+  list-style: none; padding: 0; margin: var(--s-4) 0 0;
+  display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 700px) { .trustrow { grid-template-columns: repeat(2, 1fr); } }
+.trustrow li {
+  background: var(--paper); padding: .7rem .85rem;
+  font-size: var(--t-0); line-height: 1.45;
+}
+.trustrow b { display: block; font-family: var(--display); font-weight: 700; margin-bottom: .1rem; }
+
+.stepper {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 0;
+  padding: 0; margin: var(--s-5) 0 0;
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint);
+  border-bottom: 2px solid var(--ink);
+}
+.stepper li { padding: 0 1.1rem .55rem 0; margin-right: 1.1rem; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.stepper li[aria-current="step"] { color: var(--ink); border-bottom-color: var(--ultra); }
+
+.sellcard {
+  border: 2px solid var(--ink); background: var(--paper);
+  padding: var(--s-4) var(--s-4) var(--s-3);
+  margin-top: var(--s-4);
+}
+.sellcard--done { border-color: var(--ultra); }
+.sellcard__h {
+  font-family: var(--display); font-weight: 800;
+  font-size: var(--t-2); letter-spacing: -.02em; line-height: 1.05;
+}
+.sellcard__p { font-size: var(--t-0); max-width: 56ch; margin-top: .4rem; line-height: 1.45; }
+
+.fieldrow { margin-top: var(--s-3); }
+.fieldgrid { display: grid; gap: 0 var(--s-3); grid-template-columns: 1fr; }
+@media (min-width: 620px) { .fieldgrid { grid-template-columns: 1fr 1fr; } }
+.fieldlabel {
+  display: block; font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
+  margin-bottom: .3rem;
+}
+.fieldhint { font-family: var(--mono); font-size: var(--t--1); color: var(--ink-faint); line-height: 1.6; margin-top: .35rem; }
+
+.textinput {
+  width: 100%; border: 1px solid var(--ink); background: var(--paper); color: inherit;
+  padding: .55rem .7rem; font-family: var(--display); font-weight: 600; font-size: var(--t-0);
+  border-radius: 0;
+}
+.textinput:focus { outline: 3px solid var(--ultra); outline-offset: 1px; }
+.textinput--area { font-family: inherit; font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: var(--t-0); resize: vertical; line-height: 1.45; }
+select.textinput { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 1.2rem) 1.05rem, calc(100% - .9rem) 1.05rem; background-size: .3rem .3rem; background-repeat: no-repeat; padding-right: 2.2rem; }
+
+.sellcard__acts { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: var(--s-4); }
+
+.sellmsg {
+  margin-top: var(--s-3); padding: .55rem .75rem;
+  border-left: 3px solid var(--ultra); background: var(--wash);
+  font-family: var(--mono); font-size: var(--t--1); line-height: 1.6;
+}
+.sellmsg[data-tone="bad"] { border-left-color: var(--hot); color: var(--hot); }
+
+.sellrecap { margin-top: var(--s-3); }
+
+.sellfaq { margin-top: var(--s-6); padding-top: var(--s-4); border-top: 2px solid var(--ink); }
+.sellfaq__h {
+  font-family: var(--display); font-weight: 800; font-size: var(--t-3);
+  letter-spacing: -.03em; text-transform: uppercase;
+}
+.sellfaq__grid {
+  display: grid; gap: var(--s-3) var(--s-4); grid-template-columns: 1fr;
+  margin-top: var(--s-3);
+}
+@media (min-width: 780px) { .sellfaq__grid { grid-template-columns: repeat(3, 1fr); } }
+.sellfaq__grid h3 {
+  font-family: var(--mono); font-size: var(--t--1);
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ultra);
+  margin-bottom: .3rem;
+}
+.sellfaq__grid p { font-size: var(--t-0); line-height: 1.5; }
+.sellfaq__grid b { font-weight: 600; }
