@@ -191,7 +191,6 @@ function page(a, prev, next) {
   <div class="colophon__end">
     <span>Issue 01</span>
     <span><a href="../index.html">Back to the survey &#8599;</a></span>
-    <span>No cookies, no tracking, no newsletter</span>
     <span class="end-note">&#9670; Play it loud</span>
   </div>
 </footer>
@@ -259,6 +258,7 @@ function page(a, prev, next) {
   });
 })();
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
 `;
