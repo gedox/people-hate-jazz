@@ -36,11 +36,14 @@ exists because ignoring it blocked three PRs in one afternoon — see `docs/LANE
 
 ## What counts as a good shift
 
-Issue 01 is finished and live. **Polishing it further has sharply diminishing returns.**
-The strategy is to build an audience before taking any client, and that needs things to
-distribute. Priority order is therefore:
+**The auction is the product.** The magazine is how artists come to trust us enough to list;
+live work and films are what the take-rate funds later. Read the top of `docs/BACKLOG.md`
+before prioritising anything — it is the authority on the model.
 
-> **shareable surface → content volume → tooling → polish**
+The bottleneck is that nobody has proved they want to bid and no artist has signed. Priority
+order is therefore:
+
+> **proof of demand → shareable surface → supply → tooling → polish**
 
 If an item doesn't move one of those, it's maintenance. Maintenance is allowed — never
 ahead of growth. A shift that ships a real piece of the per-artist-pages epic beats three
@@ -55,8 +58,12 @@ accompanied by evidence that you actually verified the change.
 ## Never do these without explicit permission
 
 - **Merge your own PR.** Ever.
-- **Add analytics or any tracking.** Both page footers publicly promise *"No cookies,
-  no tracking, no newsletter."* That is a commitment to readers, not a technical default.
+- **Widen what we collect about readers.** Page analytics were approved by the owner and
+  shipped in #16: Vercel Insights on all 63 pages, and the footer line *"No cookies, no
+  tracking, no newsletter"* was removed with it. That approval covers **page analytics and
+  nothing else.** Cookies, cross-site or persistent identifiers, third-party trackers, and
+  anything that stores reader data off-device — E1.2 included — still need the owner to say
+  yes, each time. Never re-word a reader-facing promise to make room for a feature.
 - **Break the design law** in `.impeccable.md` — the fonts, the palette, the hard NOs.
 - **Add a build step, a framework, or an npm dependency to the site.** The site is
   static and deploys anywhere. That is a feature. Tooling under `tools/` is fine.
