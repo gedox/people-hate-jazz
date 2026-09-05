@@ -12,7 +12,10 @@
   --paper-3:    #d2cab6;
   --ink:        #14110e;
   --ink-soft:   #423a30;
-  --ink-faint:  #6e6354;
+  /* --ink-faint carries every metadata line on the site, and those lines sit on
+     --wash as often as on --paper (tracklist hover, lot cards, teasers). It has
+     to clear 4.5:1 on the darker of the two grounds, not just on paper. */
+  --ink-faint:  #675c4d;
 
   /* riso plates. The flame has four jobs and needs four values, because a
      colour that sings as a fill fails as 11px text on bone paper.
@@ -31,6 +34,17 @@
   --rule:       color-mix(in srgb, var(--ink) 16%, transparent);
   --rule-hard:  color-mix(in srgb, var(--ink) 32%, transparent);
   --wash:       color-mix(in srgb, var(--ink) 4%, transparent);
+  /* An unpressed chip is text plus this hairline, so the hairline is the whole
+     control boundary and owes 3:1 (WCAG 1.4.11). --rule-hard is only 2.06:1 on
+     paper and cannot be raised — it also draws every rule in the newsprint grid,
+     which coarsens if darkened. Hence a separate edge just for controls. */
+  --chip-edge:  color-mix(in srgb, var(--ink) 52%, transparent);
+
+  /* The top bar is one row on desktop and two on narrow screens (the mode switch
+     pushes the nav down). Anything sticky below it reads this rather than
+     hard-coding a height that goes wrong at one breakpoint. Includes the 1px
+     border-bottom, so it is the real occupied height, not the content box. */
+  --topbar-h:   calc(3.1rem + 1px);
 
   --grain-opacity: .34;
   --grain-blend: multiply;
@@ -73,7 +87,7 @@
   --paper-3:    #2a251d;
   --ink:        #eee7d7;
   --ink-soft:   #b6ac97;
-  --ink-faint:  #8b8171;
+  --ink-faint:  #918776;
   --flame:         #ff5a2e;
   --flame-display: #ff5a2e;
   --flame-ink:     #ff5a2e;
@@ -84,6 +98,8 @@
   --rule:       color-mix(in srgb, var(--ink) 20%, transparent);
   --rule-hard:  color-mix(in srgb, var(--ink) 38%, transparent);
   --wash:       color-mix(in srgb, var(--ink) 6%, transparent);
+  /* dark already clears 3:1 at the rule-hard weight; keep the chip edge as it looks today */
+  --chip-edge:  color-mix(in srgb, var(--ink) 38%, transparent);
   --grain-opacity: .2;
   --grain-blend: screen;
   color-scheme: dark;
@@ -213,6 +229,10 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
   transition: background .18s var(--ease), color .18s var(--ease);
 }
 .topnav a:hover { background: var(--ink); color: var(--paper); }
+/* overflow-x:auto makes .topnav a scroll container that clips at its padding
+   box, and its links stretch to fill the row — so an outset ring is drawn
+   entirely outside the clip and all but disappears. Paint this one inside. */
+.topnav a:focus-visible { outline-offset: -3px; }
 
 .theme-toggle {
   padding-inline: 1rem;
@@ -267,6 +287,9 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
   .topnav, .theme-toggle { min-height: 2.5rem; }
   .topnav a:first-child { padding-left: 0; }
 
+  /* two rows now, so the sticky offset below has to grow with it */
+  :root { --topbar-h: calc(5.6rem + 1px); }
+
   html { scroll-padding-top: 7rem; }
 }
 
@@ -276,6 +299,10 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
   font-family: var(--mono); font-size: var(--t--1);
   letter-spacing: .14em; text-transform: uppercase;
   padding: .55rem 1.1rem;
+  /* 44px floor: the coarse-pointer block below covers chips, search and nav but
+     never reached .btn, which lands at 41-44px depending on page. */
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px;
   border: 1px solid var(--ink);
   background: var(--ink); color: var(--paper);
   transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
@@ -286,7 +313,7 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
 .btn--ghost { background: none; color: inherit; }
 .btn--ghost:hover:not(:disabled) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .btn--ghost[aria-pressed="true"] { background: var(--ultra); border-color: var(--ultra); color: var(--on-ultra); }
-.btn--wide { width: 100%; text-align: center; display: block; }
+.btn--wide { width: 100%; text-align: center; display: flex; }
 
 /* ── 06 MASTHEAD ──────────────────────────────────────────────────────── */
 
@@ -497,13 +524,22 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
 /* ── 10 TOOLBAR ───────────────────────────────────────────────────────── */
 
 .toolbar {
-  position: sticky; top: 3.1rem; z-index: 200;
+  position: sticky; top: var(--topbar-h); z-index: 200;
   background: var(--paper);
   border-bottom: 1px solid var(--ink);
   display: flex; flex-wrap: wrap; align-items: center;
   gap: .5rem 1.2rem;
   padding-block: .6rem;
   margin-bottom: var(--s-5);
+}
+
+/* Pinned, the toolbar wraps to ~185px on the roster and ~265px in the store;
+   with the two-row top bar above it that is a third of an 812px screen spent
+   on chrome before any editorial appears — and the search field ends up behind
+   the top bar entirely. Same trade the demo banner already makes at this width:
+   let it scroll away. Must come after the base rule to win on source order. */
+@media (max-width: 760px) {
+  .toolbar { position: static; }
 }
 
 .search {
@@ -519,6 +555,11 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
   width: 100%; min-width: 0; color: inherit;
 }
 .search input::placeholder { color: var(--ink-faint); }
+/* The input clears its own outline, and .search input (0,1,1) outranks the
+   global :focus-visible (0,1,0), so nothing replaced it — the roster search was
+   the one control on the site you could tab to with no indication. Ring the
+   wrapper instead, the same way .bidfield does in the store. */
+.search:focus-within { outline: 3px solid var(--flame-ink); outline-offset: 2px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: .3rem; }
 @media (pointer: coarse) {
@@ -531,7 +572,7 @@ main:focus { outline: none; }   /* skip-link target, not a visible control */
   font-family: var(--mono); font-size: var(--t--1);
   letter-spacing: .1em; text-transform: uppercase;
   padding: .32rem .62rem;
-  border: 1px solid var(--rule-hard);
+  border: 1px solid var(--chip-edge);
   transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease);
 }
 .chip:hover { border-color: var(--ink); }
