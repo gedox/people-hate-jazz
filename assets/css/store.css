@@ -6,10 +6,10 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* The top bar is one row on desktop and two on narrow screens (the mode
-     switch pushes the nav down). Everything sticky below it reads this
-     rather than hard-coding a height that goes wrong at one breakpoint. */
-  --topbar-h: 3.1rem;
+  /* --topbar-h moved to main.css: .toolbar there needs it too, and main.css
+     must not depend on a token only store.css defines (same argument as the
+     .modeswitch/.btn move). .toolbar had been hard-coding the height instead
+     of reading this, which is exactly what went wrong at the narrow breakpoint. */
   --lot-ink:  var(--ultra);
   --hot:      var(--flame-ink);   /* urgency only */
   --plate-a:  #1b2ecc;
@@ -21,9 +21,6 @@
 }
 /* Mode switch, button and the topbar's mobile stacking are shared chrome —
    defined in main.css so a page linking only that file still renders them. */
-@media (max-width: 760px) {
-  :root { --topbar-h: 5.6rem; }
-}
 
 /* ── DEMO BANNER ──────────────────────────────────────────────────────── */
 
