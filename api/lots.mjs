@@ -26,6 +26,7 @@ export default async function handler(req, res) {
       title: body.title,
       description: body.description,
       condition: body.condition,
+      category: body.category,
       startPrice: body.startPrice,
       reserve: body.reserve ?? null,
       photo: body.photo ?? null,
@@ -43,11 +44,16 @@ function bearerToken(req) {
   return header.startsWith("Bearer ") ? header.slice(7) : null;
 }
 
+// Keep in sync with the <select> options in sell.html — these pick which
+// deterministic plate art a lot gets, per MISSION.md's no-faked-photography rule.
+const CATEGORIES = ["vinyl", "paper", "gear", "tape", "photo", "wearable", "session"];
+
 function validateSubmission(body) {
   const errors = [];
   if (typeof body.title !== "string" || !body.title.trim()) errors.push("title");
   if (typeof body.description !== "string" || !body.description.trim()) errors.push("description");
   if (typeof body.condition !== "string" || !body.condition.trim()) errors.push("condition");
+  if (typeof body.category !== "string" || CATEGORIES.indexOf(body.category) === -1) errors.push("category");
   if (!Number.isInteger(body.startPrice) || body.startPrice <= 0) errors.push("startPrice");
   if (body.reserve != null && (!Number.isInteger(body.reserve) || body.reserve < body.startPrice)) {
     errors.push("reserve");

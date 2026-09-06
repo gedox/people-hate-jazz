@@ -38,6 +38,14 @@
  * @property {number} createdAt
  */
 
+// The in-memory fallback must survive across requests within the same
+// warm process — every API handler calls createStorage() fresh per
+// request, and createMemoryStorage() returns brand-new empty Maps each
+// time. Without this singleton, request-code/verify-code (and every
+// other multi-request flow) silently fails the moment GITHUB_TOKEN isn't
+// set, because the second request never sees what the first one wrote.
+let memorySingleton = null;
+
 /** Picks the adapter for the current environment. GitHub-backed in
  *  production; in-memory when the repo isn't configured, which is also what
  *  keeps `node --test` free of network calls. */
@@ -46,7 +54,8 @@ export async function createStorage(env = process.env) {
     const { createGithubStorage } = await import("./github-store.mjs");
     return createGithubStorage(env);
   }
-  return createMemoryStorage();
+  if (!memorySingleton) memorySingleton = createMemoryStorage();
+  return memorySingleton;
 }
 
 /** Reference implementation. Also what tests run against, since it satisfies

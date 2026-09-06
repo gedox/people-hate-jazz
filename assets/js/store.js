@@ -56,6 +56,77 @@
   }
   save();
 
+  /* ── real identity + live API (M1.1) ───────────────────────────────
+     Everything above this is the original prototype: fictional lots,
+     bids written only to localStorage. This section is additive — it
+     talks to the real /api endpoints for lots a seller actually
+     submitted through sell.html and a reviewer actually approved,
+     using the same email + one-time-code identity. If the API is
+     unreachable (viewing the file directly, offline, etc.) it fails
+     soft and Live Lots just shows an empty/offline state — the rest
+     of the prototype store keeps working from localStorage alone. */
+
+  const ID_KEY = "phj-identity-v1";
+  let ID = { email: "", token: "", accountId: "" };
+  try {
+    const raw = localStorage.getItem(ID_KEY);
+    if (raw) { const p = JSON.parse(raw); if (p && p.token) ID = p; }
+  } catch (e) { /* ignore */ }
+  function saveIdentity() {
+    try { localStorage.setItem(ID_KEY, JSON.stringify(ID)); } catch (e) { /* ignore */ }
+  }
+  let liveIdPending = null; // email awaiting its code, mid-verification
+
+  async function api(path, opts) {
+    opts = opts || {};
+    const headers = Object.assign({}, opts.headers);
+    if (opts.body) headers["Content-Type"] = "application/json";
+    if (ID.token) headers.Authorization = "Bearer " + ID.token;
+    let res;
+    try {
+      res = await fetch(path, {
+        method: opts.method || "GET",
+        headers: headers,
+        body: opts.body ? JSON.stringify(opts.body) : undefined
+      });
+    } catch (e) {
+      return { ok: false, offline: true, status: 0, data: null };
+    }
+    let data = null;
+    try { data = await res.json(); } catch (e) { /* no body */ }
+    return { ok: res.ok, offline: false, status: res.status, data: data };
+  }
+
+  const LIVE = { lots: null, bidsById: {}, loading: false, offline: false };
+
+  async function loadLiveLots() {
+    if (LIVE.lots || LIVE.loading) return LIVE.lots || [];
+    LIVE.loading = true;
+    const r = await api("/api/lots");
+    LIVE.loading = false;
+    if (!r.ok) { LIVE.offline = r.offline; LIVE.lots = []; return LIVE.lots; }
+    LIVE.offline = false;
+    LIVE.lots = (r.data && Array.isArray(r.data.lots)) ? r.data.lots : [];
+    return LIVE.lots;
+  }
+
+  async function loadLiveBids(id) {
+    if (LIVE.bidsById[id]) return LIVE.bidsById[id];
+    const r = await api("/api/lots/" + encodeURIComponent(id) + "/bids");
+    const bids = (r.ok && r.data && Array.isArray(r.data.bids)) ? r.data.bids : [];
+    LIVE.bidsById[id] = bids;
+    return bids;
+  }
+
+  function liveTopBid(bids) {
+    return bids.reduce((b, x) => (!b || x.amount > b.amount) ? x : b, null);
+  }
+  function liveCurrent(lot, bids) {
+    const top = liveTopBid(bids);
+    return top ? top.amount : lot.startPrice;
+  }
+  const liveMinNext = (v) => v + step(v);
+
   /* ── deterministic randomness (stable art + bid histories) ──────── */
 
   function hash32(str) {
@@ -552,6 +623,132 @@
       "</section>";
   }
 
+  function liveSkeleton(text) {
+    return '<section class="shell" style="padding-block:var(--s-5) var(--s-6)">' +
+      sechead("Live Lots", "Real listings, submitted by real artists, reviewed by a person.") +
+      '<p class="mono" style="color:var(--ink-faint)">' + esc(text) + "</p></section>";
+  }
+
+  function liveRow(lot) {
+    return '<li><a href="#/live/' + esc(lot.id) + '"><span class="mb-t">' + esc(lot.title) + "</span>" +
+      '<span class="mb-a">' + esc(lot.condition || "") + "</span></a>" +
+      '<span class="mb-amt">' + money(lot.startPrice) + "<br>" +
+      '<span class="mb-a">opening bid</span></span></li>';
+  }
+
+  function viewLive() {
+    if (LIVE.lots === null) {
+      loadLiveLots().then(() => { if (parse().name === "live") render(); });
+      return liveSkeleton("Loading live lots…");
+    }
+    if (LIVE.offline) {
+      return '<section class="shell" style="padding-block:var(--s-5) var(--s-6)">' +
+        sechead("Live Lots", "Real listings, submitted by real artists.") +
+        '<div class="empty"><h3>Can&rsquo;t reach the server</h3>' +
+        "<p>Live Lots needs the API, and it isn&rsquo;t reachable from here right now. " +
+        "The rest of the store below still works from your browser.</p></div></section>";
+    }
+    const lots = LIVE.lots;
+    return '<section class="shell" style="padding-block:var(--s-5) var(--s-6)">' +
+      sechead("Live Lots", "Real listings, submitted by real artists, reviewed by a person, sold for real.") +
+      '<p class="storefoot-note" style="margin-top:calc(var(--s-3) * -1);margin-bottom:var(--s-4)">' +
+        "Separate from the invented catalogue below &mdash; these lots persist on a real server " +
+        'and a real bid is a real commitment. <a href="sell.html">List one of your own &#8599;</a></p>' +
+      (lots.length
+        ? '<div class="mybids"><div class="mybids__head"><span>Open for bidding</span><span>' +
+            lots.length + "</span></div><ul>" + lots.map(liveRow).join("") + "</ul></div>"
+        : '<div class="empty"><h3>Nothing live yet</h3>' +
+          '<p>No lot has cleared review yet. <a href="sell.html">Be the first to list one &#8599;</a></p></div>') +
+      "</section>";
+  }
+
+  function liveBidBoxBody(lot, need) {
+    if (!ID.token) {
+      if (liveIdPending) {
+        return '<form class="bidform" id="liveid-code" novalidate>' +
+          '<div class="fieldrow"><label class="fieldlabel" for="liveid-code-in">6-digit code</label>' +
+          '<input class="textinput" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" ' +
+            'id="liveid-code-in" required placeholder="000000"></div>' +
+          '<button class="btn" type="submit">Verify &amp; continue</button> ' +
+          '<button class="btn btn--ghost" type="button" id="liveid-restart">Use a different email</button>' +
+          '<p class="fieldhint">Sent to ' + esc(liveIdPending) + ".</p>" +
+          '<div id="liveid-msg"></div></form>';
+      }
+      return '<form class="bidform" id="liveid-email" novalidate>' +
+        '<div class="fieldrow"><label class="fieldlabel" for="liveid-email-in">Email to bid</label>' +
+        '<input class="textinput" type="email" id="liveid-email-in" required placeholder="you@example.com"></div>' +
+        '<button class="btn" type="submit">Send me a code</button>' +
+        '<p class="fieldhint">Same one-time code as listing a lot &mdash; no password, nothing stored but the address.</p>' +
+        '<div id="liveid-msg"></div></form>';
+    }
+    return '<form class="bidform" id="livebidform" data-lot="' + esc(lot.id) + '">' +
+      '<div class="bidform__row"><label class="bidfield"><span>$</span>' +
+        '<input type="number" id="livebidamt" inputmode="numeric" step="1" min="' + need +
+        '" value="' + need + '" aria-label="Your bid in dollars"></label>' +
+        '<button class="btn" type="submit">Place bid</button></div>' +
+      '<p class="bidhint">Next valid bid is <b>' + money(need) + "</b>.</p>" +
+      '<div id="livebidmsg" role="status"></div></form>';
+  }
+
+  function viewLiveLot(id) {
+    if (LIVE.lots === null) {
+      loadLiveLots().then(() => { if (parse().name === "livelot" && parse().id === id) render(); });
+      return liveSkeleton("Loading lot…");
+    }
+    const lot = LIVE.lots.filter((l) => l.id === id)[0];
+    if (!lot) return notFound();
+    const bids = LIVE.bidsById[id];
+    if (!bids) {
+      loadLiveBids(id).then(() => { if (parse().name === "livelot" && parse().id === id) render(); });
+      return liveSkeleton("Loading bids…");
+    }
+    const closed = lot.closesAt != null && Date.now() >= lot.closesAt;
+    const cur = liveCurrent(lot, bids);
+    const need = liveMinNext(cur);
+    const top = liveTopBid(bids);
+    const mine = !!(top && ID.accountId && top.bidderId === ID.accountId);
+    const sorted = bids.slice().sort((a, b) => b.amount - a.amount);
+
+    return '<section class="lotview shell">' +
+      '<nav class="crumbs" aria-label="Breadcrumb"><a href="#/live">Live Lots</a><span>/</span>' +
+        "<span>" + esc(lot.title) + "</span></nav>" +
+      '<div class="lotview__grid">' +
+        "<div>" +
+          (lot.category
+            ? '<div class="lotview__plate">' + plateSVG({ id: lot.id, cat: lot.category }) +
+              '<span class="plate__cat">' + esc(CATLABEL[lot.category] || lot.category) + "</span></div>"
+            : "") +
+          '<h1 class="lotview__title">' + esc(lot.title) + "</h1>" +
+          '<p class="lotview__desc">' + esc(lot.description) + "</p>" +
+          '<dl class="spec">' +
+            "<div><dt>Condition</dt><dd>" + esc(lot.condition) + "</dd></div>" +
+            "<div><dt>Edition</dt><dd>1 of 1 &mdash; no reissue</dd></div>" +
+            "<div><dt>Opening bid</dt><dd>" + money(lot.startPrice) + "</dd></div>" +
+          "</dl>" +
+          '<div class="history"><h3>Bid history &mdash; ' + bids.length +
+            (bids.length === 1 ? " bid" : " bids") + "</h3>" +
+            (sorted.length
+              ? "<ol>" + sorted.map((b) =>
+                  '<li class="' + (ID.accountId && b.bidderId === ID.accountId ? "is-me" : "") +
+                  '"><span class="who">' + (ID.accountId && b.bidderId === ID.accountId ? "You" : "bidder") +
+                  '</span><span class="amt">' + money(b.amount) + '</span><span class="when">' +
+                  ago(b.at) + "</span></li>").join("") + "</ol>"
+              : '<p class="mybids__empty">No bids yet. Opening bid is ' + money(lot.startPrice) + ".</p>") +
+          "</div>" +
+        "</div>" +
+        "<div><div class=\"bidbox\">" +
+          '<div class="bidbox__head"><span>' + (closed ? "Lot closed" : "Bidding open") + "</span></div>" +
+          '<div class="bidbox__body">' +
+            '<dl class="bidnow"><div><dt>' + (bids.length ? "Current bid" : "Opening bid") +
+              "</dt><dd>" + money(cur) + "</dd></div></dl>" +
+            (mine ? '<div class="bidmsg" data-tone="good">You are the highest bidder</div>' : "") +
+            (closed ? "" : liveBidBoxBody(lot, need)) +
+          "</div>" +
+        "</div></div>" +
+      "</div>" +
+    "</section>";
+  }
+
   function viewHow() {
     return '<section class="shell" style="padding-block:var(--s-5) var(--s-6)">' +
       sechead("How It Works", "Four rules and one disclaimer") +
@@ -724,6 +921,83 @@
       });
     }
 
+    /* live lots — real identity + a real bid against the real API */
+    const liveEmailForm = $("#liveid-email");
+    if (liveEmailForm) {
+      liveEmailForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = $("#liveid-email-in").value.trim();
+        if (!email) return;
+        const btn = liveEmailForm.querySelector("button[type=submit]");
+        btn.disabled = true;
+        const r = await api("/api/auth/request-code", { method: "POST", body: { email: email } });
+        btn.disabled = false;
+        const msg = $("#liveid-msg");
+        if (!r.ok) {
+          if (msg) msg.innerHTML = '<div class="bidmsg" data-tone="bad">Couldn’t reach the server.</div>';
+          return;
+        }
+        liveIdPending = email;
+        render();
+      });
+    }
+    const liveCodeForm = $("#liveid-code");
+    if (liveCodeForm) {
+      liveCodeForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const code = $("#liveid-code-in").value.trim();
+        if (!code) return;
+        const btn = liveCodeForm.querySelector("button[type=submit]");
+        btn.disabled = true;
+        const r = await api("/api/auth/verify-code", { method: "POST", body: { email: liveIdPending, code: code } });
+        btn.disabled = false;
+        if (!r.ok || !r.data || !r.data.token) {
+          const msg = $("#liveid-msg");
+          if (msg) msg.innerHTML = '<div class="bidmsg" data-tone="bad">That code didn’t check out. Codes expire &mdash; try sending a new one.</div>';
+          return;
+        }
+        ID = { email: liveIdPending, token: r.data.token, accountId: r.data.accountId };
+        saveIdentity();
+        liveIdPending = null;
+        render();
+      });
+      const restart = $("#liveid-restart");
+      if (restart) restart.addEventListener("click", () => { liveIdPending = null; render(); });
+    }
+    const liveBidForm = $("#livebidform");
+    if (liveBidForm) {
+      liveBidForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = liveBidForm.dataset.lot;
+        const amt = Math.floor(Number($("#livebidamt").value));
+        const msg = $("#livebidmsg");
+        if (!isFinite(amt) || amt <= 0) {
+          msg.innerHTML = '<div class="bidmsg" data-tone="bad">Enter an amount.</div>';
+          return;
+        }
+        const btn = liveBidForm.querySelector("button[type=submit]");
+        btn.disabled = true;
+        const r = await api("/api/lots/" + encodeURIComponent(id) + "/bids", {
+          method: "POST", body: { amount: amt }
+        });
+        btn.disabled = false;
+        if (!r.ok) {
+          const reason = r.data && r.data.error;
+          const text = !r.ok && r.offline ? "Couldn’t reach the server."
+                     : reason === "too_low" ? "Too low. The next valid bid is " + money(r.data.minimum) + "."
+                     : reason === "already_winning" ? "You’re already the highest bidder."
+                     : reason === "closed" ? "This lot closed while you were looking at it."
+                     : reason === "unauthenticated" ? "Your session expired &mdash; verify your email again."
+                     : "The server didn’t accept that bid.";
+          msg.innerHTML = '<div class="bidmsg" data-tone="bad">' + text + "</div>";
+          if (reason === "unauthenticated") { ID = { email: "", token: "", accountId: "" }; saveIdentity(); }
+          return;
+        }
+        delete LIVE.bidsById[id]; // force a refetch so history and price are server-truth
+        render();
+      });
+    }
+
     /* clear everything */
     const wipe = $("#wipe");
     if (wipe) {
@@ -755,6 +1029,8 @@
     if (p[0] === "closing") return { name: "closing" };
     if (p[0] === "mybids")  return { name: "mybids" };
     if (p[0] === "how")     return { name: "how" };
+    if (p[0] === "live" && p[1]) return { name: "livelot", id: p[1] };
+    if (p[0] === "live")    return { name: "live" };
     return { name: "index" };
   }
 
@@ -770,6 +1046,8 @@
       : r.name === "closing" ? viewClosing()
       : r.name === "mybids"  ? viewMyBids()
       : r.name === "how"     ? viewHow()
+      : r.name === "live"    ? viewLive()
+      : r.name === "livelot" ? viewLiveLot(r.id)
       : viewIndex();
 
     view.innerHTML = html;
